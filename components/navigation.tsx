@@ -14,9 +14,9 @@ export function Navigation() {
         <div className="flex items-center justify-between h-16">
           <Link href="/" className="flex items-center gap-2">
             <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-              <span className="text-primary-foreground font-bold text-lg">⚡</span>
+              <span className="text-primary-foreground font-bold text-lg bg-gray-800">⚡</span>
             </div>
-            <span className="font-bold text-lg hidden sm:inline">Zolana</span>
+            <span className="font-bold text-lg hidden sm:inline font-mono">Zolana</span>
           </Link>
 
           <div className="hidden md:flex items-center gap-8">
