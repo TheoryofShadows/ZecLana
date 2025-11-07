@@ -36,6 +36,16 @@ export function Footer() {
                   Tachyon Roadmap
                 </Link>
               </li>
+              <li>
+                <Link href="/privacy-policy" className="text-muted-foreground hover:text-foreground transition">
+                  Privacy Policy
+                </Link>
+              </li>
+              <li>
+                <Link href="/terms" className="text-muted-foreground hover:text-foreground transition">
+                  Terms of Service
+                </Link>
+              </li>
             </ul>
           </div>
 
