@@ -9,8 +9,6 @@ create table if not exists public.profiles (
   country text,
   timezone text default 'UTC',
   preferred_currency text default 'USD',
-  kyc_status text default 'pending', -- pending, verified, rejected, expired
-  kyc_verified_at timestamp,
   privacy_level text default 'private', -- private, friends, public
   two_fa_enabled boolean default false,
   two_fa_method text, -- email, sms, authenticator
@@ -42,7 +40,6 @@ create policy "profiles_delete_own"
 
 -- Indexes for performance
 create index idx_profiles_email on public.profiles(email);
-create index idx_profiles_kyc_status on public.profiles(kyc_status);
 create index idx_profiles_created_at on public.profiles(created_at);
 
 -- Trigger to auto-create profile on signup

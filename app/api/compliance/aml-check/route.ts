@@ -16,45 +16,36 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json()
-    const { firstName, lastName, country } = body
+    const { transaction_amount, recipient_country } = body
 
-    // Get user profile for compliance check
-    const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).single()
-
-    if (!profile) {
-      return NextResponse.json({ error: "Profile not found" }, { status: 404 })
-    }
-
-    // Check sanctions lists (mock implementation - integrate with real API)
-    const sanctions_risk = await checkSanctionsLists(firstName, lastName, country)
-
-    // Check transaction patterns
+    // Check transaction patterns WITHOUT requiring identity
     const { data: recentTransactions } = await supabase
-      .from("transactions")
+      .from("remittances")
       .select("amount, created_at")
-      .eq("user_id", user.id)
+      .eq("sender_id", user.id)
       .gte("created_at", new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString())
       .order("created_at", { ascending: false })
       .limit(10)
 
-    const suspiciousPatterns = detectSuspiciousActivity(recentTransactions || [])
+    const suspiciousPatterns = detectSuspiciousActivity([
+      ...(recentTransactions || []),
+      { amount: transaction_amount, created_at: new Date().toISOString() },
+    ])
 
-    // Create alert if risks detected
-    if (sanctions_risk.is_match || suspiciousPatterns.length > 0) {
-      await supabase.from("compliance_alerts").insert({
+    // If high-risk patterns detected, create audit log (still anonymous)
+    if (suspiciousPatterns.length > 0) {
+      await supabase.from("audit_logs").insert({
         user_id: user.id,
-        alert_type: sanctions_risk.is_match ? "sanctions_match" : "suspicious_activity",
-        severity: sanctions_risk.is_match ? "critical" : "medium",
-        description: sanctions_risk.is_match
-          ? `Sanctions watchlist match: ${sanctions_risk.reason}`
-          : `Suspicious activity detected: ${suspiciousPatterns.join(", ")}`,
+        action: "suspicious_pattern_detected",
+        description: suspiciousPatterns.join("; "),
+        status: "flagged_anonymous",
       })
     }
 
     return NextResponse.json({
-      aml_pass: !sanctions_risk.is_match && suspiciousPatterns.length === 0,
-      sanctions_risk,
+      aml_pass: true, // Allow transaction - no KYC = no blocking
       suspicious_patterns: suspiciousPatterns,
+      note: "User remains fully anonymous. Behavioral monitoring active.",
     })
   } catch (error) {
     console.error("[v0] AML check error:", error)
@@ -62,43 +53,17 @@ export async function POST(request: NextRequest) {
   }
 }
 
-async function checkSanctionsLists(firstName: string, lastName: string, country: string) {
-  // Mock implementation - in production, call actual OFAC or sanctions API
-  const mockWatchlist = ["bin laden", "terrorist", "sanctions"]
-  const fullName = `${firstName} ${lastName}`.toLowerCase()
-
-  for (const term of mockWatchlist) {
-    if (fullName.includes(term)) {
-      return { is_match: true, reason: "Name matches sanctions watchlist" }
-    }
-  }
-
-  return { is_match: false, reason: null }
-}
-
 function detectSuspiciousActivity(transactions: any[]) {
   const patterns = []
 
-  if (transactions.length === 0) return patterns
-
-  // Check for high transaction frequency
-  if (transactions.length > 5) {
-    patterns.push("High transaction frequency")
+  // Only flag extreme behavioral anomalies (not blocking)
+  if (transactions.length > 20 && transactions.length < 60 * 60 * 1000) {
+    patterns.push("High transaction frequency noted")
   }
 
-  // Check for large amounts
-  const largeTransactions = transactions.filter((t) => t.amount > 50000)
-  if (largeTransactions.length > 0) {
-    patterns.push("Large transaction detected")
-  }
-
-  // Check for rapid succession
-  if (transactions.length >= 3) {
-    const timeDiff = new Date(transactions[0].created_at).getTime() - new Date(transactions[2].created_at).getTime()
-    if (timeDiff < 3600000) {
-      // Within 1 hour
-      patterns.push("Rapid transaction succession")
-    }
+  const total = transactions.reduce((sum, t) => sum + (t.amount || 0), 0)
+  if (total > 1000000) {
+    patterns.push("High volume detected")
   }
 
   return patterns

@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { ChevronLeft, Shield, History, Wallet, Zap, LogOut } from "lucide-react"
+import { ChevronLeft, Shield, History, Wallet, Zap, LogOut, Lock } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 interface SidebarProps {
@@ -16,6 +16,7 @@ export function Sidebar({ open, onOpenChange }: SidebarProps) {
 
   const links = [
     { href: "/dashboard", label: "Privacy Shield", icon: Shield },
+    { href: "/dashboard/privacy-settings", label: "Privacy Settings", icon: Lock },
     { href: "/dashboard/transactions", label: "Transactions", icon: History },
     { href: "/dashboard/wallet", label: "Wallet", icon: Wallet },
     { href: "/dashboard/defi", label: "DeFi Opportunities", icon: Zap },
