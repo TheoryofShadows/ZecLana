@@ -3,18 +3,24 @@
 import type React from "react"
 
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card } from "@/components/ui/card"
 import { Mail, Lock } from "lucide-react"
 
 export function LoginForm() {
+  const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
-    setTimeout(() => setIsLoading(false), 1000)
+    // Simulate authentication before entering the dashboard.
+    setTimeout(() => {
+      setIsLoading(false)
+      router.push("/dashboard")
+    }, 1000)
   }
 
   return (

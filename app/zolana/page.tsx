@@ -11,7 +11,7 @@ import { useState, useEffect } from "react"
 export default function ZolanaPage() {
   const [zecPrice, setZecPrice] = useState(350)
   const [szecPrice, setSzecPrice] = useState(350.02)
-  const [liquidity, setLiquidity] = useState(56600000)
+  const [liquidity] = useState(56600000)
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -112,7 +112,7 @@ export default function ZolanaPage() {
                 <div className="flex-1">
                   <h3 className="font-semibold mb-2">Send on Solana</h3>
                   <p className="text-sm text-muted-foreground">
-                    Instant settlement. szEC arrives in recipient's wallet in ~2 seconds. Zero public trace.
+                    Instant settlement. szEC arrives in recipient&apos;s wallet in ~2 seconds. Zero public trace.
                   </p>
                 </div>
               </div>

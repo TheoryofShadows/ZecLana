@@ -51,7 +51,7 @@ export default function Privacy20Page() {
           <Card className="p-8 mb-12 border-primary/20 bg-gradient-to-br from-primary/5 to-transparent">
             <h2 className="text-2xl font-bold mb-4">What is Privacy 2.0?</h2>
             <p className="text-muted-foreground mb-4">
-              Privacy 2.0 is Helius's vision for a privacy-first infrastructure layer built on Solana. It combines:
+              Privacy 2.0 is Helius&apos;s vision for a privacy-first infrastructure layer built on Solana. It combines:
             </p>
             <ul className="space-y-3">
               <li className="flex gap-3">
@@ -103,7 +103,7 @@ export default function Privacy20Page() {
               {mertQuotes.map((quote, idx) => (
                 <Card key={idx} className="p-6 border-primary/20 bg-gradient-to-br from-primary/5 to-transparent">
                   <blockquote className="mb-4">
-                    <p className="text-lg font-semibold italic">"{quote.text}"</p>
+                    <p className="text-lg font-semibold italic">&ldquo;{quote.text}&rdquo;</p>
                   </blockquote>
                   <footer className="text-sm text-muted-foreground">
                     <span className="font-semibold">— Mert Mumtaz</span>
@@ -133,7 +133,7 @@ export default function Privacy20Page() {
                   <Shield size={20} className="text-primary" />
                   Proven Track Record
                 </h3>
-                <p className="text-sm text-muted-foreground">Already powering Solana's most critical infrastructure</p>
+                <p className="text-sm text-muted-foreground">Already powering Solana&apos;s most critical infrastructure</p>
               </div>
               <div>
                 <h3 className="font-semibold mb-2 flex items-center gap-2">

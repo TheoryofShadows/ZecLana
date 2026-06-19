@@ -97,7 +97,7 @@ export function Footer() {
 
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
             <p className="text-sm text-muted-foreground">
-              2025 Zolana. "20 years from now: Bitcoin, Solana, ZEC." — Mert Mumtaz
+              © 2025 Zolana. &ldquo;20 years from now: Bitcoin, Solana, ZEC.&rdquo; — Mert Mumtaz
             </p>
             <div className="flex gap-4">
               <Link href="#" className="text-muted-foreground hover:text-foreground transition">

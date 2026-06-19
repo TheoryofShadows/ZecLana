@@ -3,10 +3,11 @@
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Edit2, Shield, Clock } from "lucide-react"
+import type { RemittanceData } from "../types"
 
 interface ReviewStepProps {
-  data: any
-  onEdit: (step: string) => void
+  data: RemittanceData
+  onEdit: (step: "recipient" | "amount") => void
 }
 
 export function ReviewStep({ data, onEdit }: ReviewStepProps) {
