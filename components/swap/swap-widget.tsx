@@ -127,6 +127,7 @@ export function SwapWidget() {
   const [preview, setPreview] = useState<Quote | null>(null)
   const [previewLoading, setPreviewLoading] = useState(false)
   const [previewError, setPreviewError] = useState<string | null>(null)
+  const [previewDegraded, setPreviewDegraded] = useState(false)
   const [refreshTick, setRefreshTick] = useState(0)
 
   const [liveQuote, setLiveQuote] = useState<Quote | null>(null)
@@ -208,6 +209,7 @@ export function SwapWidget() {
           setPreview(null)
         } else {
           setPreview(data.quote)
+          setPreviewDegraded(Boolean(data.degraded))
         }
       } catch {
         if (!controller.signal.aborted) setPreviewError("Network error fetching quote")
@@ -609,7 +611,10 @@ export function SwapWidget() {
             </div>
             {preview.indicative && (
               <div className="flex items-center gap-1 pt-1 text-amber-600 dark:text-amber-500">
-                <RefreshCw size={12} /> Indicative rate — locked exactly when you reserve the deposit.
+                <RefreshCw size={12} />
+                {previewDegraded
+                  ? "Spot-price estimate (solvers busy) — exact rate locked when you reserve."
+                  : "Indicative rate — locked exactly when you reserve the deposit."}
               </div>
             )}
           </div>

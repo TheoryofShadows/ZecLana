@@ -12,8 +12,19 @@ import { fromSmallestUnit, toSmallestUnit } from "./amount"
 const BASE_URL = (process.env.ONECLICK_BASE_URL || "https://1click.chaindefuser.com").replace(/\/$/, "")
 const JWT = process.env.ONECLICK_JWT
 const DEFAULT_SLIPPAGE_BPS = 100 // 1%
-const QUOTE_TIMEOUT_MS = 30_000
 const TOKENS_TIMEOUT_MS = 12_000
+
+// The 1Click gateway gives up on the solver relay after ~25s. Solver congestion
+// is transient, so live quotes (which reserve a real deposit address) retry a
+// couple of times; preview quotes stay snappy and fall back to a spot estimate.
+const DRY_TIMEOUT_MS = 13_000
+const DRY_ATTEMPTS = 1
+const DRY_QUOTE_WAIT_MS = 2_000
+const LIVE_TIMEOUT_MS = 26_000
+const LIVE_ATTEMPTS = 2
+const LIVE_QUOTE_WAIT_MS = 4_000
+
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
 interface RawToken {
   assetId: string
@@ -48,9 +59,20 @@ async function fetchJson(url: string, init: RequestInit, timeoutMs: number): Pro
       throw new SwapApiError(message, res.status)
     }
     return body
+  } catch (err) {
+    if (err instanceof SwapApiError) throw err
+    if ((err as Error)?.name === "AbortError") {
+      throw new SwapApiError("The solver network is busy right now. Please try again.", 504)
+    }
+    throw new SwapApiError((err as Error)?.message || "Network error reaching the solver", 502)
   } finally {
     clearTimeout(timer)
   }
+}
+
+/** Transient failures worth retrying: timeouts and 5xx from the solver relay. */
+function isRetryable(err: unknown): boolean {
+  return err instanceof SwapApiError && err.status >= 500
 }
 
 export class SwapApiError extends Error {
@@ -84,11 +106,13 @@ export async function getQuote(input: QuoteRequestInput): Promise<Quote> {
     throw new SwapApiError("Amount must be greater than zero", 400)
   }
 
+  const dry = input.dry ?? true
+
   // 1Click reserves a deposit address for ~10 minutes; give the user a window.
   const deadline = new Date(Date.now() + 15 * 60_000).toISOString()
 
   const requestBody = {
-    dry: input.dry ?? true,
+    dry,
     swapType: "EXACT_INPUT",
     slippageTolerance: input.slippageToleranceBps ?? DEFAULT_SLIPPAGE_BPS,
     originAsset: input.originAssetId,
@@ -99,14 +123,33 @@ export async function getQuote(input: QuoteRequestInput): Promise<Quote> {
     refundType: "ORIGIN_CHAIN",
     recipient: input.recipient,
     recipientType: "DESTINATION_CHAIN",
+    quoteWaitingTimeMs: dry ? DRY_QUOTE_WAIT_MS : LIVE_QUOTE_WAIT_MS,
     deadline,
   }
 
-  const body = (await fetchJson(
-    `${BASE_URL}/v0/quote`,
-    { method: "POST", headers: authHeaders(), body: JSON.stringify(requestBody) },
-    QUOTE_TIMEOUT_MS,
-  )) as { quote?: Record<string, unknown> }
+  const timeoutMs = dry ? DRY_TIMEOUT_MS : LIVE_TIMEOUT_MS
+  const maxAttempts = dry ? DRY_ATTEMPTS : LIVE_ATTEMPTS
+
+  let body: { quote?: Record<string, unknown> } | undefined
+  let lastErr: unknown
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      body = (await fetchJson(
+        `${BASE_URL}/v0/quote`,
+        { method: "POST", headers: authHeaders(), body: JSON.stringify(requestBody) },
+        timeoutMs,
+      )) as { quote?: Record<string, unknown> }
+      break
+    } catch (err) {
+      lastErr = err
+      if (attempt < maxAttempts && isRetryable(err)) {
+        await sleep(600 * attempt)
+        continue
+      }
+      throw err
+    }
+  }
+  if (!body) throw lastErr
 
   const q = body.quote ?? {}
   const amountOut = String(q.amountOut ?? "0")
@@ -122,7 +165,7 @@ export async function getQuote(input: QuoteRequestInput): Promise<Quote> {
     depositAddress: typeof q.depositAddress === "string" ? q.depositAddress : undefined,
     deadline: typeof q.deadline === "string" ? q.deadline : deadline,
     timeEstimateSeconds: typeof q.timeEstimate === "number" ? q.timeEstimate : undefined,
-    indicative: input.dry ?? true,
+    indicative: dry,
   }
 }
 

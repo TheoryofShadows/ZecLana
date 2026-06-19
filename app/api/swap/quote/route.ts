@@ -5,6 +5,8 @@ import type { QuoteRequestInput } from "@/lib/swap/types"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
+// Live quotes retry through transient solver-relay congestion; allow headroom.
+export const maxDuration = 60
 
 export async function POST(request: Request) {
   let input: QuoteRequestInput
