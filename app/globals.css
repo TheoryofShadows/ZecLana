@@ -152,3 +152,102 @@
 .neon-pulse {
   animation: neon-pulse 2s ease-in-out infinite;
 }
+
+/* Animated conic gradient border used to frame the swap card */
+@property --swap-angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+
+@keyframes swap-spin {
+  to {
+    --swap-angle: 360deg;
+  }
+}
+
+.swap-frame {
+  position: relative;
+  border-radius: 1.5rem;
+  background:
+    linear-gradient(var(--card), var(--card)) padding-box,
+    conic-gradient(
+        from var(--swap-angle),
+        oklch(0.5 0.15 270 / 0.7),
+        oklch(0.6 0.22 145 / 0.7),
+        oklch(0.5 0.15 270 / 0.7)
+      )
+      border-box;
+  border: 1.5px solid transparent;
+  animation: swap-spin 8s linear infinite;
+}
+
+.swap-frame::after {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  z-index: -1;
+  border-radius: inherit;
+  background: conic-gradient(
+    from var(--swap-angle),
+    oklch(0.5 0.15 270 / 0.35),
+    oklch(0.6 0.22 145 / 0.35),
+    oklch(0.5 0.15 270 / 0.35)
+  );
+  filter: blur(22px);
+  opacity: 0.6;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .swap-frame,
+  .shield-glow,
+  .neon-pulse {
+    animation: none;
+  }
+}
+
+/* Shimmer skeleton for loading states */
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.shimmer {
+  position: relative;
+  overflow: hidden;
+}
+
+.shimmer::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, oklch(1 0 0 / 0.12), transparent);
+  animation: shimmer 1.4s infinite;
+}
+
+@keyframes pop-in {
+  0% {
+    transform: scale(0.6);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.08);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.pop-in {
+  animation: pop-in 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.bg-grid-pattern {
+  background-image:
+    linear-gradient(to right, oklch(0.5 0.15 270 / 0.15) 1px, transparent 1px),
+    linear-gradient(to bottom, oklch(0.5 0.15 270 / 0.15) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
