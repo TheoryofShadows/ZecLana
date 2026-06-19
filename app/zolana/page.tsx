@@ -4,23 +4,11 @@ import { Navigation } from "@/components/navigation"
 import { Footer } from "@/components/footer"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
-import { ArrowRight, TrendingUp, Lock, Zap } from "lucide-react"
+import { SwapWidget } from "@/components/swap/swap-widget"
+import { ArrowRight, Lock, Zap } from "lucide-react"
 import Link from "next/link"
-import { useState, useEffect } from "react"
 
 export default function ZolanaPage() {
-  const [zecPrice, setZecPrice] = useState(350)
-  const [szecPrice, setSzecPrice] = useState(350.02)
-  const [liquidity] = useState(56600000)
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setZecPrice((prev) => prev + (Math.random() - 0.5) * 2)
-      setSzecPrice((prev) => prev + (Math.random() - 0.5) * 2)
-    }, 3000)
-    return () => clearInterval(interval)
-  }, [])
-
   return (
     <main className="min-h-screen bg-gradient-to-b from-background via-background to-muted/20">
       <Navigation />
@@ -28,53 +16,45 @@ export default function ZolanaPage() {
       <section className="pt-20 pb-32 px-4 sm:px-6 lg:px-8">
         <div className="max-w-5xl mx-auto">
           {/* Header */}
-          <div className="text-center mb-16">
+          <div className="text-center mb-12">
             <h1 className="text-5xl sm:text-6xl font-bold mb-6 text-balance">
               Zolana Bridge
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary"> Live</span>
             </h1>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto text-balance">
-              Real-time ZEC ↔ szEC (Solana ZEC) bridge powered by Near Intents and Raydium liquidity.
+              Swap ZEC between Zcash and Solana — and back — with no account and no KYC. Powered by NEAR Intents.
             </p>
           </div>
 
-          {/* Price Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
-            <Card className="p-8 border-primary/20 bg-gradient-to-br from-primary/5 to-transparent">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="font-semibold text-lg">ZEC Price</h3>
-                <Lock size={20} className="text-primary" />
-              </div>
-              <div className="text-4xl font-bold mb-2">${zecPrice.toFixed(2)}</div>
-              <p className="text-sm text-muted-foreground">Zcash mainnet</p>
-            </Card>
-
-            <Card className="p-8 border-secondary/20 bg-gradient-to-br from-secondary/5 to-transparent">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="font-semibold text-lg">szEC Price</h3>
-                <Zap size={20} className="text-secondary" />
-              </div>
-              <div className="text-4xl font-bold mb-2">${szecPrice.toFixed(2)}</div>
-              <p className="text-sm text-muted-foreground">Solana token</p>
-            </Card>
+          {/* Live swap widget */}
+          <div className="max-w-xl mx-auto mb-16">
+            <SwapWidget />
           </div>
 
-          {/* Liquidity Info */}
-          <Card className="p-8 mb-12 border-border/50 bg-gradient-to-r from-primary/5 via-secondary/5 to-primary/5">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="font-semibold text-lg mb-2">Raydium Liquidity</h3>
-                <p className="text-muted-foreground">Deep, stable ZEC/USDC pool on Solana</p>
+          {/* Why it's private */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
+            <Card className="p-6 border-primary/20 bg-gradient-to-br from-primary/5 to-transparent">
+              <div className="flex items-center gap-3 mb-2">
+                <Lock size={20} className="text-primary" />
+                <h3 className="font-semibold text-lg">No account, no KYC</h3>
               </div>
-              <div className="text-right">
-                <div className="text-3xl font-bold text-secondary">${(liquidity / 1000000).toFixed(1)}M</div>
-                <p className="text-sm text-muted-foreground flex items-center gap-2 justify-end">
-                  <TrendingUp size={16} className="text-secondary" />
-                  Live liquidity feed
-                </p>
+              <p className="text-sm text-muted-foreground">
+                Swaps settle through a decentralized solver network. You never create an account or hand over identity
+                documents — funds move directly to the address you control.
+              </p>
+            </Card>
+
+            <Card className="p-6 border-secondary/20 bg-gradient-to-br from-secondary/5 to-transparent">
+              <div className="flex items-center gap-3 mb-2">
+                <Zap size={20} className="text-secondary" />
+                <h3 className="font-semibold text-lg">ZEC, both ways</h3>
               </div>
-            </div>
-          </Card>
+              <p className="text-sm text-muted-foreground">
+                Move native ZEC onto Solana as szEC for instant, low-fee transfers — then unwrap back to native ZEC on
+                Zcash whenever you want. SOL and USDC routes included.
+              </p>
+            </Card>
+          </div>
 
           {/* Bridge Flow */}
           <div className="bg-gradient-to-r from-primary/5 to-secondary/5 border border-border rounded-2xl p-8 mb-12">
