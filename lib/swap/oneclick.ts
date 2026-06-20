@@ -75,6 +75,28 @@ function isRetryable(err: unknown): boolean {
   return err instanceof SwapApiError && err.status >= 500
 }
 
+// The solver's "amount too low" message quotes the minimum in smallest units
+// (e.g. "try at least 52000"), which reads as nonsense to a human. Convert it.
+function humanizeQuoteError(err: unknown, decimals: number, symbol: string): unknown {
+  if (!(err instanceof SwapApiError)) return err
+  const match = err.message.match(/too low.*?(\d{4,})/i)
+  if (match) {
+    const human = fromSmallestUnit(match[1], decimals)
+    return new SwapApiError(`Amount is too low — try at least ${human} ${symbol}.`, 400)
+  }
+  return err
+}
+
+/** A tx hash entry may be a bare string or an object with a `hash` field. */
+function extractHash(arr: unknown): string | undefined {
+  const first = Array.isArray(arr) ? arr[0] : undefined
+  if (typeof first === "string") return first
+  if (first && typeof first === "object" && typeof (first as { hash?: unknown }).hash === "string") {
+    return (first as { hash: string }).hash
+  }
+  return undefined
+}
+
 export class SwapApiError extends Error {
   status: number
   constructor(message: string, status = 502) {
@@ -146,10 +168,10 @@ export async function getQuote(input: QuoteRequestInput): Promise<Quote> {
         await sleep(600 * attempt)
         continue
       }
-      throw err
+      break
     }
   }
-  if (!body) throw lastErr
+  if (!body) throw humanizeQuoteError(lastErr, origin.decimals, origin.symbol)
 
   const q = body.quote ?? {}
   const amountOut = String(q.amountOut ?? "0")
@@ -185,8 +207,8 @@ export async function getStatus(depositAddress: string): Promise<SwapStatus> {
   const body = (await fetchJson(url, { method: "GET", headers: authHeaders() }, TOKENS_TIMEOUT_MS)) as {
     status?: string
     swapDetails?: {
-      originChainTxHashes?: { hash: string }[]
-      destinationChainTxHashes?: { hash: string }[]
+      originChainTxHashes?: unknown
+      destinationChainTxHashes?: unknown
       amountInFormatted?: string
       amountOutFormatted?: string
     }
@@ -196,10 +218,10 @@ export async function getStatus(depositAddress: string): Promise<SwapStatus> {
   return {
     status: STATUS_MAP[body.status ?? ""] ?? "UNKNOWN",
     depositAddress,
-    originTxHash: details?.originChainTxHashes?.[0]?.hash,
-    destinationTxHash: details?.destinationChainTxHashes?.[0]?.hash,
-    amountInFormatted: details?.amountInFormatted,
-    amountOutFormatted: details?.amountOutFormatted,
+    originTxHash: extractHash(details?.originChainTxHashes),
+    destinationTxHash: extractHash(details?.destinationChainTxHashes),
+    amountInFormatted: details?.amountInFormatted ?? undefined,
+    amountOutFormatted: details?.amountOutFormatted ?? undefined,
     raw: body,
   }
 }

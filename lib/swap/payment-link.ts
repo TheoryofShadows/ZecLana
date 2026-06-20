@@ -16,13 +16,23 @@ export interface PaymentRequest {
 }
 
 function toBase64Url(input: string): string {
-  const b64 = typeof btoa === "function" ? btoa(input) : Buffer.from(input, "utf8").toString("base64")
+  // UTF-8 safe: btoa() only accepts Latin1, so a label like "Café ☕" must be
+  // encoded to bytes first.
+  const bytes = new TextEncoder().encode(input)
+  let binary = ""
+  for (const byte of bytes) binary += String.fromCharCode(byte)
+  const b64 = typeof btoa === "function" ? btoa(binary) : Buffer.from(input, "utf8").toString("base64")
   return b64.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "")
 }
 
 function fromBase64Url(input: string): string {
   const b64 = input.replace(/-/g, "+").replace(/_/g, "/")
-  return typeof atob === "function" ? atob(b64) : Buffer.from(b64, "base64").toString("utf8")
+  if (typeof atob === "function") {
+    const binary = atob(b64)
+    const bytes = Uint8Array.from(binary, (c) => c.charCodeAt(0))
+    return new TextDecoder().decode(bytes)
+  }
+  return Buffer.from(b64, "base64").toString("utf8")
 }
 
 export function encodeRequest(req: PaymentRequest): string {
