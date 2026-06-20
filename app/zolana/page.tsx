@@ -5,7 +5,8 @@ import { Footer } from "@/components/footer"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { SwapWidget } from "@/components/swap/swap-widget"
-import { ArrowRight, Lock, Zap, Sparkles, Wallet, ShieldCheck, EyeOff } from "lucide-react"
+import { SwapHistory } from "@/components/swap/swap-history"
+import { ArrowRight, Lock, Zap, Sparkles, Wallet, ShieldCheck, EyeOff, Receipt } from "lucide-react"
 import Link from "next/link"
 
 const TRUST_STATS = [
@@ -76,8 +77,30 @@ export default function ZolanaPage() {
           </div>
 
           {/* Live swap widget */}
-          <div className="mx-auto mb-8 max-w-xl">
+          <div className="mx-auto mb-6 max-w-xl">
             <SwapWidget />
+          </div>
+
+          {/* Self-custodial history + request CTA */}
+          <div className="mx-auto mb-8 max-w-xl space-y-4">
+            <SwapHistory />
+            <Link
+              href="/request"
+              className="flex items-center justify-between rounded-2xl border border-border bg-card p-4 transition-colors hover:border-primary/40"
+            >
+              <span className="flex items-center gap-3">
+                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                  <Receipt size={18} />
+                </span>
+                <span>
+                  <span className="block font-medium">Request a payment</span>
+                  <span className="block text-xs text-muted-foreground">
+                    Get paid in private ZEC from any chain — no account needed
+                  </span>
+                </span>
+              </span>
+              <ArrowRight size={18} className="text-muted-foreground" />
+            </Link>
           </div>
 
           {/* Trust stats */}

@@ -23,6 +23,9 @@ export function Navigation() {
             <Link href="/zolana" className="text-sm hover:text-primary transition font-medium">
               Bridge
             </Link>
+            <Link href="/request" className="text-sm hover:text-primary transition">
+              Request
+            </Link>
             <Link href="/privacy-2.0" className="text-sm hover:text-primary transition">
               Privacy 2.0
             </Link>
@@ -55,6 +58,9 @@ export function Navigation() {
           <div className="md:hidden pb-4 space-y-3">
             <Link href="/zolana" className="block text-sm hover:text-primary transition font-medium">
               Bridge
+            </Link>
+            <Link href="/request" className="block text-sm hover:text-primary transition">
+              Request
             </Link>
             <Link href="/privacy-2.0" className="block text-sm hover:text-primary transition">
               Privacy 2.0

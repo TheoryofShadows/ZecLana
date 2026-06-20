@@ -4,7 +4,7 @@
 // 1Click is non-custodial and requires no account or KYC: a solver network
 // settles the swap to a deposit address. That matches Zolana's privacy goal.
 
-export type Chain = "zec" | "sol"
+export type Chain = "zec" | "sol" | "btc" | "eth" | "base" | "near"
 
 /** A swappable asset as exposed by the 1Click `/v0/tokens` endpoint. */
 export interface SwapAsset {

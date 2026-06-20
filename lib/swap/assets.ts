@@ -39,6 +39,47 @@ export const CURATED_ASSETS: SwapAsset[] = [
     decimals: 6,
     contractAddress: "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
   },
+  // "Anything → private ZEC" origins.
+  {
+    assetId: "nep141:btc.omft.near",
+    symbol: "BTC",
+    label: "BTC (Bitcoin)",
+    chain: "btc",
+    decimals: 8,
+    contractAddress: "btc.omft.near",
+  },
+  {
+    assetId: "nep141:eth.omft.near",
+    symbol: "ETH",
+    label: "ETH (Ethereum)",
+    chain: "eth",
+    decimals: 18,
+    contractAddress: "eth.omft.near",
+  },
+  {
+    assetId: "nep141:eth-0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.omft.near",
+    symbol: "USDC",
+    label: "USDC on Ethereum",
+    chain: "eth",
+    decimals: 6,
+    contractAddress: "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+  },
+  {
+    assetId: "nep141:base.omft.near",
+    symbol: "ETH",
+    label: "ETH on Base",
+    chain: "base",
+    decimals: 18,
+    contractAddress: "base.omft.near",
+  },
+  {
+    assetId: "nep141:wrap.near",
+    symbol: "NEAR",
+    label: "NEAR",
+    chain: "near",
+    decimals: 24,
+    contractAddress: "wrap.near",
+  },
 ]
 
 const CURATED_IDS = new Set(CURATED_ASSETS.map((a) => a.assetId))
