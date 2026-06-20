@@ -88,7 +88,7 @@ export default function RequestPage() {
               <Input
                 placeholder={chainMeta(chain).addressHint}
                 value={address}
-                onChange={(e) => setAddress(e.target.value)}
+                onChange={(e) => setAddress(e.target.value.replace(/\s+/g, ""))}
                 className="pr-9"
               />
               {addressValid && <Check size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-secondary" />}

@@ -123,7 +123,12 @@ export async function getQuote(input: QuoteRequestInput): Promise<Quote> {
     throw new SwapApiError("Unsupported asset pair", 400)
   }
 
-  const amountSmallest = toSmallestUnit(input.amount, origin.decimals)
+  let amountSmallest: string
+  try {
+    amountSmallest = toSmallestUnit(input.amount, origin.decimals)
+  } catch {
+    throw new SwapApiError("Enter a valid amount", 400)
+  }
   if (BigInt(amountSmallest) <= BigInt(0)) {
     throw new SwapApiError("Amount must be greater than zero", 400)
   }

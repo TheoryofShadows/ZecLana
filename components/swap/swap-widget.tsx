@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { QRCodeSVG } from "qrcode.react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -56,6 +56,10 @@ const STATUS_RANK: Record<string, number> = {
 }
 
 const QUICK_AMOUNTS = ["0.1", "0.5", "1", "5"]
+
+// Crypto addresses never contain whitespace. Strip it so a pasted address with
+// stray spaces/newlines validates AND submits cleanly (not just validates).
+const sanitizeAddress = (value: string) => value.replace(/\s+/g, "")
 
 function tokenGradient(asset?: SwapAsset): string {
   if (!asset) return "from-muted to-muted"
@@ -145,6 +149,7 @@ export function SwapWidget({ prefill }: { prefill?: SwapPrefill }) {
   const [creating, setCreating] = useState(false)
   const [createError, setCreateError] = useState<string | null>(null)
   const [status, setStatus] = useState<SwapStatus | null>(null)
+  const submittingRef = useRef(false)
 
   const fromAsset = useMemo(() => assets.find((a) => a.assetId === fromId), [assets, fromId])
   const toAsset = useMemo(() => assets.find((a) => a.assetId === toId), [assets, toId])
@@ -236,6 +241,9 @@ export function SwapWidget({ prefill }: { prefill?: SwapPrefill }) {
   }, [fromId, toId, amount, recipient, refundTo, fromAsset, toAsset, liveQuote, refreshTick])
 
   const createSwap = useCallback(async () => {
+    // Guard against a double-click reserving (and recording) two deposits.
+    if (submittingRef.current) return
+    submittingRef.current = true
     setCreating(true)
     setCreateError(null)
     try {
@@ -272,6 +280,7 @@ export function SwapWidget({ prefill }: { prefill?: SwapPrefill }) {
       setCreateError("Network error. Please try again.")
     } finally {
       setCreating(false)
+      submittingRef.current = false
     }
   }, [fromId, toId, amount, recipient, refundTo, fromAsset, toAsset])
 
@@ -393,12 +402,20 @@ export function SwapWidget({ prefill }: { prefill?: SwapPrefill }) {
                   </div>
                   <p className="break-all font-mono text-xs">{liveQuote.depositAddress}</p>
                 </div>
-                {countdown.remaining > 0 && (
+                {countdown.remaining > 0 ? (
                   <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
                     <Clock size={14} />
                     Quote valid for <span className="font-mono font-semibold text-foreground">{countdown.formatted}</span>
                   </div>
-                )}
+                ) : liveQuote.deadline ? (
+                  <div className="flex items-start gap-1.5 rounded-lg border border-amber-500/30 bg-amber-500/5 p-2 text-xs text-amber-600 dark:text-amber-500">
+                    <AlertTriangle size={14} className="mt-0.5 shrink-0" />
+                    <span>
+                      This quote has expired — do <span className="font-semibold">not</span> send to this address. Start a
+                      new swap to get a fresh deposit address and rate.
+                    </span>
+                  </div>
+                ) : null}
               </div>
             </>
           )}
@@ -486,13 +503,20 @@ export function SwapWidget({ prefill }: { prefill?: SwapPrefill }) {
         </div>
 
         {locked && (
-          <div className="mb-4 flex items-start gap-2 rounded-xl border border-primary/20 bg-primary/5 p-3 text-sm">
-            <Receipt size={16} className="mt-0.5 shrink-0 text-primary" />
-            <span>
-              {prefill?.label ? <span className="font-medium">{prefill.label}: </span> : null}
-              You&apos;re paying {prefill?.amount ? `${prefill.amount} ` : ""}
-              {toAsset?.symbol ?? "the requested asset"} to a fixed address. Pick what you want to pay with.
-            </span>
+          <div className="mb-4 rounded-xl border border-primary/20 bg-primary/5 p-3 text-sm">
+            <div className="flex items-start gap-2">
+              <Receipt size={16} className="mt-0.5 shrink-0 text-primary" />
+              <span>
+                {prefill?.label ? <span className="font-medium">{prefill.label}: </span> : null}
+                You&apos;re paying {prefill?.amount ? `${prefill.amount} ` : ""}
+                {toAsset?.symbol ?? "the requested asset"}. Pick what you want to pay with.
+              </span>
+            </div>
+            {/* Always show the destination so the payer can verify where funds go. */}
+            <div className="mt-2 rounded-lg border border-border bg-card p-2">
+              <span className="text-[11px] text-muted-foreground">Recipient ({chainLabel(recipientChain)})</span>
+              <p className="break-all font-mono text-xs">{prefill?.recipient}</p>
+            </div>
           </div>
         )}
 
@@ -533,12 +557,13 @@ export function SwapWidget({ prefill }: { prefill?: SwapPrefill }) {
               min="0"
               step="any"
               placeholder="0.00"
+              aria-label="Amount to send"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
-              className="h-11 border-0 bg-transparent px-0 text-2xl font-semibold shadow-none focus-visible:ring-0"
+              className="h-11 min-w-0 border-0 bg-transparent px-0 text-2xl font-semibold shadow-none focus-visible:ring-0"
             />
             <Select value={fromId} onValueChange={setFromId}>
-              <SelectTrigger className="h-11 w-[210px] shrink-0 rounded-full">
+              <SelectTrigger className="h-11 w-[150px] shrink-0 rounded-full sm:w-[210px]">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -602,7 +627,7 @@ export function SwapWidget({ prefill }: { prefill?: SwapPrefill }) {
               )}
             </div>
             <Select value={toId} onValueChange={setToId} disabled={locked}>
-              <SelectTrigger className="h-11 w-[210px] shrink-0 rounded-full">
+              <SelectTrigger className="h-11 w-[150px] shrink-0 rounded-full sm:w-[210px]">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -665,16 +690,17 @@ export function SwapWidget({ prefill }: { prefill?: SwapPrefill }) {
           {!locked && (
             <div>
               <div className="mb-1 flex items-center justify-between">
-                <label className="block text-sm font-medium">
+                <label htmlFor="swap-recipient" className="block text-sm font-medium">
                   Recipient address <span className="text-muted-foreground">({chainLabel(recipientChain)})</span>
                 </label>
-                <WalletFillButton chain={recipientChain} onFill={setRecipient} />
+                <WalletFillButton chain={recipientChain} onFill={(a) => setRecipient(sanitizeAddress(a))} />
               </div>
               <div className="relative">
                 <Input
+                  id="swap-recipient"
                   placeholder={chainMeta(recipientChain).addressHint}
                   value={recipient}
-                  onChange={(e) => setRecipient(e.target.value)}
+                  onChange={(e) => setRecipient(sanitizeAddress(e.target.value))}
                   className="pr-9"
                 />
                 {recipientValid && <Check size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-secondary" />}
@@ -683,16 +709,17 @@ export function SwapWidget({ prefill }: { prefill?: SwapPrefill }) {
           )}
           <div>
             <div className="mb-1 flex items-center justify-between">
-              <label className="block text-sm font-medium">
+              <label htmlFor="swap-refund" className="block text-sm font-medium">
                 Refund address <span className="text-muted-foreground">({chainLabel(refundChain)})</span>
               </label>
-              <WalletFillButton chain={refundChain} onFill={setRefundTo} />
+              <WalletFillButton chain={refundChain} onFill={(a) => setRefundTo(sanitizeAddress(a))} />
             </div>
             <div className="relative">
               <Input
+                id="swap-refund"
                 placeholder={chainMeta(refundChain).addressHint}
                 value={refundTo}
-                onChange={(e) => setRefundTo(e.target.value)}
+                onChange={(e) => setRefundTo(sanitizeAddress(e.target.value))}
                 className="pr-9"
               />
               {refundValid && <Check size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-secondary" />}

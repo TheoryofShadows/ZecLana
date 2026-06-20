@@ -6,6 +6,8 @@ import { Footer } from "@/components/footer"
 import { Button } from "@/components/ui/button"
 import { SwapWidget, type SwapPrefill } from "@/components/swap/swap-widget"
 import { readRequestFromHash } from "@/lib/swap/payment-link"
+import { isCuratedAsset, getAssetById } from "@/lib/swap/assets"
+import { chainMeta } from "@/lib/swap/chains"
 import { AlertTriangle } from "lucide-react"
 import Link from "next/link"
 
@@ -16,7 +18,11 @@ export default function PayPage() {
   useEffect(() => {
     queueMicrotask(() => {
       const req = readRequestFromHash(window.location.hash)
-      if (req) {
+      // Only honor requests for a supported asset whose recipient is a valid
+      // address for that asset's chain — otherwise the link is malformed or
+      // malicious and we must not lock the payer into it.
+      const asset = req && getAssetById(req.destAssetId)
+      if (req && asset && isCuratedAsset(req.destAssetId) && chainMeta(asset.chain).isValidAddress(req.recipient)) {
         setPrefill({ toAssetId: req.destAssetId, recipient: req.recipient, amount: req.amount, label: req.label })
       }
       setReady(true)
