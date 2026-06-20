@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { QRCodeSVG } from "qrcode.react"
 import { chainMeta, chainLabel } from "@/lib/swap/chains"
+import { WalletFillButton } from "@/components/swap/wallet-fill-button"
 import { buildPayLink } from "@/lib/swap/payment-link"
 import type { SwapAsset } from "@/lib/swap/types"
 import { Check, Copy, Link2, Receipt, ShieldCheck } from "lucide-react"
@@ -77,9 +78,12 @@ export default function RequestPage() {
               </SelectContent>
             </Select>
 
-            <label className="mb-1 block text-sm font-medium">
-              Your {chainLabel(chain)} address <span className="text-muted-foreground">(where you get paid)</span>
-            </label>
+            <div className="mb-1 flex items-center justify-between">
+              <label className="block text-sm font-medium">
+                Your {chainLabel(chain)} address <span className="text-muted-foreground">(where you get paid)</span>
+              </label>
+              <WalletFillButton chain={chain} onFill={setAddress} />
+            </div>
             <div className="relative mb-4">
               <Input
                 placeholder={chainMeta(chain).addressHint}

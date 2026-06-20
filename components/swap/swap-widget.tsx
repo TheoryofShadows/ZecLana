@@ -25,6 +25,7 @@ import { chainMeta, chainLabel } from "@/lib/swap/chains"
 import { assessPrivacy } from "@/lib/swap/privacy"
 import { saveSwap, updateSwapStatus } from "@/lib/swap/history"
 import { PrivacyMeter } from "./privacy-meter"
+import { WalletFillButton } from "./wallet-fill-button"
 
 const ZEC_NATIVE = "nep141:zec.omft.near"
 const ZEC_SOLANA = "1cs_v1:sol:spl:A7bdiYdS5GjqGFtxf17ppRHtDKPkkRqbKtR27dxvQXaS"
@@ -663,9 +664,12 @@ export function SwapWidget({ prefill }: { prefill?: SwapPrefill }) {
         <div className="mt-4 space-y-3">
           {!locked && (
             <div>
-              <label className="mb-1 block text-sm font-medium">
-                Recipient address <span className="text-muted-foreground">({chainLabel(recipientChain)})</span>
-              </label>
+              <div className="mb-1 flex items-center justify-between">
+                <label className="block text-sm font-medium">
+                  Recipient address <span className="text-muted-foreground">({chainLabel(recipientChain)})</span>
+                </label>
+                <WalletFillButton chain={recipientChain} onFill={setRecipient} />
+              </div>
               <div className="relative">
                 <Input
                   placeholder={chainMeta(recipientChain).addressHint}
@@ -678,9 +682,12 @@ export function SwapWidget({ prefill }: { prefill?: SwapPrefill }) {
             </div>
           )}
           <div>
-            <label className="mb-1 block text-sm font-medium">
-              Refund address <span className="text-muted-foreground">({chainLabel(refundChain)})</span>
-            </label>
+            <div className="mb-1 flex items-center justify-between">
+              <label className="block text-sm font-medium">
+                Refund address <span className="text-muted-foreground">({chainLabel(refundChain)})</span>
+              </label>
+              <WalletFillButton chain={refundChain} onFill={setRefundTo} />
+            </div>
             <div className="relative">
               <Input
                 placeholder={chainMeta(refundChain).addressHint}
