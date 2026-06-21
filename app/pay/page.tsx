@@ -16,17 +16,22 @@ export default function PayPage() {
   const [ready, setReady] = useState(false)
 
   useEffect(() => {
-    queueMicrotask(() => {
-      const req = readRequestFromHash(window.location.hash)
-      // Only honor requests for a supported asset whose recipient is a valid
-      // address for that asset's chain — otherwise the link is malformed or
-      // malicious and we must not lock the payer into it.
-      const asset = req && getAssetById(req.destAssetId)
-      if (req && asset && isCuratedAsset(req.destAssetId) && chainMeta(asset.chain).isValidAddress(req.recipient)) {
-        setPrefill({ toAssetId: req.destAssetId, recipient: req.recipient, amount: req.amount, label: req.label })
-      }
-      setReady(true)
-    })
+    // Re-evaluate whenever the hash changes too, so editing the link in the same
+    // tab updates the request (and clears a stale one) instead of going stale.
+    const evaluate = () =>
+      queueMicrotask(() => {
+        const req = readRequestFromHash(window.location.hash)
+        const asset = req && getAssetById(req.destAssetId)
+        if (req && asset && isCuratedAsset(req.destAssetId) && chainMeta(asset.chain).isValidAddress(req.recipient)) {
+          setPrefill({ toAssetId: req.destAssetId, recipient: req.recipient, amount: req.amount, label: req.label })
+        } else {
+          setPrefill(null)
+        }
+        setReady(true)
+      })
+    evaluate()
+    window.addEventListener("hashchange", evaluate)
+    return () => window.removeEventListener("hashchange", evaluate)
   }, [])
 
   return (
