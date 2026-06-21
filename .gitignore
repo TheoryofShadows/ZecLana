@@ -31,3 +31,6 @@ next-env.d.ts
 /test-results
 /coverage
 /.vitest
+
+# next static export
+/out

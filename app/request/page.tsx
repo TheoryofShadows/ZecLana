@@ -10,6 +10,7 @@ import { QRCodeSVG } from "qrcode.react"
 import { chainMeta, chainLabel } from "@/lib/swap/chains"
 import { WalletFillButton } from "@/components/swap/wallet-fill-button"
 import { buildPayLink } from "@/lib/swap/payment-link"
+import { loadAssets } from "@/lib/swap/client"
 import type { SwapAsset } from "@/lib/swap/types"
 import { Check, Copy, Link2, Receipt, ShieldCheck } from "lucide-react"
 
@@ -25,8 +26,7 @@ export default function RequestPage() {
   const [copied, setCopied] = useState(false)
 
   useEffect(() => {
-    fetch("/api/swap/tokens")
-      .then((r) => r.json())
+    loadAssets()
       .then((d) => Array.isArray(d.assets) && setAssets(d.assets))
       .catch(() => {})
   }, [])

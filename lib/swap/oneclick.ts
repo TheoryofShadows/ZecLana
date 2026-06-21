@@ -1,5 +1,3 @@
-import "server-only"
-
 import type { Quote, QuoteRequestInput, SwapStatus, SwapStatusValue } from "./types"
 import { getAssetById } from "./assets"
 import { fromSmallestUnit, toSmallestUnit } from "./amount"

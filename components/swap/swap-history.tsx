@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react"
 import { listSwaps, clearSwaps, updateSwapStatus, type SwapRecord } from "@/lib/swap/history"
+import { fetchStatus } from "@/lib/swap/client"
 import { chainMeta } from "@/lib/swap/chains"
 import { History, Trash2, ExternalLink, Loader2, Check, AlertTriangle } from "lucide-react"
 
@@ -47,9 +48,8 @@ export function SwapHistory() {
       await Promise.all(
         pending.map(async (r) => {
           try {
-            const res = await fetch(`/api/swap/status?depositAddress=${encodeURIComponent(r.depositAddress)}`)
-            const data = await res.json()
-            if (active && res.ok && data.status?.status) updateSwapStatus(r.id, data.status.status)
+            const data = await fetchStatus(r.depositAddress)
+            if (active && data.status?.status) updateSwapStatus(r.id, data.status.status)
           } catch {
             /* transient */
           }

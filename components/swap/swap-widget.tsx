@@ -24,6 +24,7 @@ import type { Quote, SwapAsset, SwapStatus } from "@/lib/swap/types"
 import { chainMeta, chainLabel } from "@/lib/swap/chains"
 import { assessPrivacy } from "@/lib/swap/privacy"
 import { saveSwap, updateSwapStatus } from "@/lib/swap/history"
+import { loadAssets, requestQuote, fetchStatus } from "@/lib/swap/client"
 import { PrivacyMeter } from "./privacy-meter"
 import { WalletFillButton } from "./wallet-fill-button"
 
@@ -156,8 +157,7 @@ export function SwapWidget({ prefill }: { prefill?: SwapPrefill }) {
 
   useEffect(() => {
     let active = true
-    fetch("/api/swap/tokens")
-      .then((r) => r.json())
+    loadAssets()
       .then((data) => {
         if (!active) return
         if (Array.isArray(data.assets)) setAssets(data.assets)
@@ -205,22 +205,16 @@ export function SwapWidget({ prefill }: { prefill?: SwapPrefill }) {
       setPreviewError(null)
       setPreviewLoading(true)
       try {
-        const res = await fetch("/api/swap/quote", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          signal: controller.signal,
-          body: JSON.stringify({
-            originAssetId: fromId,
-            destinationAssetId: toId,
-            amount,
-            recipient: recipient || chainMeta(toAsset?.chain ?? "sol").placeholder,
-            refundTo: refundTo || chainMeta(fromAsset?.chain ?? "zec").placeholder,
-            dry: true,
-          }),
+        const data = await requestQuote({
+          originAssetId: fromId,
+          destinationAssetId: toId,
+          amount,
+          recipient: recipient || chainMeta(toAsset?.chain ?? "sol").placeholder,
+          refundTo: refundTo || chainMeta(fromAsset?.chain ?? "zec").placeholder,
+          dry: true,
         })
-        const data = await res.json()
         if (controller.signal.aborted) return
-        if (!res.ok) {
+        if (data.error || !data.quote) {
           setPreviewError(data.error || "Couldn't fetch a quote")
           setPreview(null)
         } else {
@@ -247,13 +241,8 @@ export function SwapWidget({ prefill }: { prefill?: SwapPrefill }) {
     setCreating(true)
     setCreateError(null)
     try {
-      const res = await fetch("/api/swap/quote", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ originAssetId: fromId, destinationAssetId: toId, amount, recipient, refundTo, dry: false }),
-      })
-      const data = await res.json()
-      if (!res.ok || !data.quote?.depositAddress) {
+      const data = await requestQuote({ originAssetId: fromId, destinationAssetId: toId, amount, recipient, refundTo, dry: false })
+      if (data.error || !data.quote?.depositAddress) {
         setCreateError(data.error || "Couldn't reserve a deposit address. The solver network may be busy — try again.")
         return
       }
@@ -290,9 +279,8 @@ export function SwapWidget({ prefill }: { prefill?: SwapPrefill }) {
     let active = true
     const poll = async () => {
       try {
-        const res = await fetch(`/api/swap/status?depositAddress=${encodeURIComponent(depositAddress)}`)
-        const data = await res.json()
-        if (active && res.ok && data.status) {
+        const data = await fetchStatus(depositAddress)
+        if (active && data.status) {
           setStatus(data.status)
           updateSwapStatus(depositAddress, data.status.status)
         }

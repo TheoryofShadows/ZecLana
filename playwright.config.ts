@@ -19,7 +19,8 @@ export default defineConfig({
   },
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
   webServer: {
-    command: `pnpm build && pnpm start -p ${PORT}`,
+    // The app is a static export; build it and serve out/ with a tiny static server.
+    command: `pnpm build && node tests/serve-out.mjs`,
     url: `http://localhost:${PORT}`,
     reuseExistingServer: !process.env.CI,
     timeout: 240_000,

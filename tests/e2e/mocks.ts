@@ -2,9 +2,10 @@ import type { Page, Route } from "@playwright/test"
 import { CURATED_ASSETS } from "../../lib/swap/assets"
 import type { SwapStatusValue } from "../../lib/swap/types"
 
-// Hermetic mocks for the swap API. Each test installs the responses it needs so
-// flows are fully deterministic — including screens (SUCCESS/FAILED/EXPIRED,
-// degraded estimate) that can't be reached reliably against the live solver.
+// Hermetic mocks for the 1Click API (the app now calls it directly from the
+// browser). Each test installs the responses it needs so flows are fully
+// deterministic — including screens (SUCCESS/FAILED/EXPIRED, degraded estimate)
+// that can't be reached reliably against the live solver.
 
 const PRICES: Record<string, number> = {
   "nep141:zec.omft.near": 40,
@@ -16,13 +17,12 @@ const PRICES: Record<string, number> = {
 export const DEPOSIT_ADDRESS = "t1DepositAddr1111111111111111111111"
 
 export interface MockOptions {
-  /** Live prices on/off for the tokens feed. */
   pricesLive?: boolean
   /** Make the tokens feed fail (drives the "price feed unavailable" note). */
   tokensFail?: boolean
-  /** Mark the dry quote as a degraded spot estimate. */
+  /** Mark the dry quote as a degraded spot estimate (forces the estimate path). */
   degraded?: boolean
-  /** Force the dry (preview) quote to error with this message + status. */
+  /** Force the dry (preview) quote to error. */
   dryError?: { message: string; status: number }
   /** Force the live (reserve) quote to error. */
   liveError?: { message: string; status: number }
@@ -34,78 +34,81 @@ export interface MockOptions {
   destinationTxHash?: string
 }
 
-function tokensPayload(opts: MockOptions) {
+/** Raw 1Click /v0/tokens shape: an array of token records with prices. */
+function tokensRaw(opts: MockOptions) {
   const live = opts.pricesLive ?? true
-  return {
-    assets: CURATED_ASSETS.map((a) => ({ ...a, priceUsd: live ? PRICES[a.assetId] ?? a.priceUsd : undefined })),
-    pricesLive: live,
-  }
+  return CURATED_ASSETS.map((a) => ({
+    assetId: a.assetId,
+    decimals: a.decimals,
+    blockchain: a.chain,
+    symbol: a.symbol,
+    contractAddress: a.contractAddress,
+    price: live ? PRICES[a.assetId] : undefined,
+  }))
 }
 
 export async function installSwapMocks(page: Page, opts: MockOptions = {}) {
   let pollCount = 0
 
-  await page.route("**/api/swap/tokens", async (route: Route) => {
+  await page.route("**/v0/tokens", async (route: Route) => {
     if (opts.tokensFail) {
-      await route.fulfill({ status: 200, json: { assets: CURATED_ASSETS, pricesLive: false } })
+      await route.fulfill({ status: 500, json: { message: "feed down" } })
       return
     }
-    await route.fulfill({ status: 200, json: tokensPayload(opts) })
+    await route.fulfill({ status: 200, json: tokensRaw(opts) })
   })
 
-  await page.route("**/api/swap/quote", async (route: Route) => {
-    const body = route.request().postDataJSON() as { dry?: boolean; amount: string }
+  await page.route("**/v0/quote", async (route: Route) => {
+    const body = route.request().postDataJSON() as { dry?: boolean; amount: string; originAsset: string }
     const isDry = body.dry ?? true
-    const amountIn = body.amount || "1"
-    const amountOut = (Number(amountIn) * 0.199).toFixed(4) // ~ZEC->SOL-ish rate for display
+    // 1Click receives the amount in smallest units; recover the human amount.
+    const origin = CURATED_ASSETS.find((a) => a.assetId === body.originAsset)
+    const human = Number(body.amount) / 10 ** (origin?.decimals ?? 8)
+    const amountIn = String(human)
+    const amountOut = (human * 0.199).toFixed(4)
 
     if (isDry) {
-      if (opts.dryError) {
-        await route.fulfill({ status: opts.dryError.status, json: { error: opts.dryError.message } })
+      // A 5xx here makes the client fall back to a spot estimate (degraded).
+      if (opts.dryError || opts.degraded) {
+        await route.fulfill({ status: opts.dryError?.status ?? 503, json: { message: opts.dryError?.message ?? "solvers busy" } })
         return
       }
       await route.fulfill({
         status: 200,
         json: {
           quote: {
-            amountIn,
             amountInFormatted: amountIn,
             amountInUsd: (Number(amountIn) * 40).toFixed(2),
             amountOut: "1",
             amountOutFormatted: amountOut,
             amountOutUsd: (Number(amountOut) * 200).toFixed(2),
-            timeEstimateSeconds: 120,
-            indicative: true,
+            timeEstimate: 120,
           },
-          degraded: Boolean(opts.degraded),
         },
       })
       return
     }
 
-    // live (reserve) quote
     if (opts.liveError) {
-      await route.fulfill({ status: opts.liveError.status, json: { error: opts.liveError.message } })
+      await route.fulfill({ status: opts.liveError.status, json: { message: opts.liveError.message } })
       return
     }
     await route.fulfill({
       status: 200,
       json: {
         quote: {
-          amountIn,
           amountInFormatted: amountIn,
           amountOut: "1",
           amountOutFormatted: amountOut,
           depositAddress: DEPOSIT_ADDRESS,
           deadline: opts.liveDeadline ?? new Date(Date.now() + 15 * 60_000).toISOString(),
-          timeEstimateSeconds: 120,
-          indicative: false,
+          timeEstimate: 120,
         },
       },
     })
   })
 
-  await page.route("**/api/swap/status**", async (route: Route) => {
+  await page.route("**/v0/status**", async (route: Route) => {
     const seq = opts.statuses ?? ["PENDING_DEPOSIT"]
     const status = seq[Math.min(pollCount, seq.length - 1)]
     pollCount++
@@ -113,10 +116,9 @@ export async function installSwapMocks(page: Page, opts: MockOptions = {}) {
     await route.fulfill({
       status: 200,
       json: {
-        status: {
-          status,
-          depositAddress: DEPOSIT_ADDRESS,
-          destinationTxHash: isSuccess ? opts.destinationTxHash ?? "DEST_TX_HASH" : undefined,
+        status,
+        swapDetails: {
+          destinationChainTxHashes: isSuccess ? [opts.destinationTxHash ?? "DEST_TX_HASH"] : [],
           amountOutFormatted: isSuccess ? "0.199" : undefined,
         },
       },

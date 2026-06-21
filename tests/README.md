@@ -7,9 +7,10 @@ Comprehensive, hermetic coverage for the ZEC ⇄ Solana swap feature.
 - `unit/` — Vitest (jsdom). Pure logic and browser-module behavior: amount math,
   privacy assessment, chain/address validation, payment-link encode/decode (with
   fuzzing), curated assets, spot estimate, local history, wallet connector, the
-  1Click client (`fetch` mocked), and the API route handlers (1Click mocked).
-- `e2e/` — Playwright against a production `next start`, with **all `/api/swap/*`
-  calls mocked** (`mocks.ts`) for determinism. Covers the full configure→reserve
+  1Click client (`fetch` mocked), and the browser swap client (`client.ts`).
+- `e2e/` — Playwright against the static export (served by `serve-out.mjs`), with
+  **all 1Click API calls mocked** (`mocks.ts`) for determinism. Covers the full
+  configure→reserve
   flow, every status screen (SUCCESS/FAILED/REFUNDED/EXPIRED, expiry, progression),
   payment requests, the privacy meter, Phantom autofill, responsiveness, a route
   smoke check, and accessibility (`@axe-core/playwright`).
