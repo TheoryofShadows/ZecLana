@@ -66,7 +66,7 @@ export default function RequestPage() {
           <div className="rounded-2xl border border-border bg-card p-6 sm:p-8">
             <label className="mb-1 block text-sm font-medium">Receive</label>
             <Select value={assetId} onValueChange={setAssetId}>
-              <SelectTrigger className="mb-4">
+              <SelectTrigger aria-label="Asset to receive" className="mb-4">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>

@@ -563,7 +563,7 @@ export function SwapWidget({ prefill }: { prefill?: SwapPrefill }) {
               className="h-11 min-w-0 border-0 bg-transparent px-0 text-2xl font-semibold shadow-none focus-visible:ring-0"
             />
             <Select value={fromId} onValueChange={setFromId}>
-              <SelectTrigger className="h-11 w-[150px] shrink-0 rounded-full sm:w-[210px]">
+              <SelectTrigger aria-label="Asset to send" className="h-11 w-[150px] shrink-0 rounded-full sm:w-[210px]">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -627,7 +627,7 @@ export function SwapWidget({ prefill }: { prefill?: SwapPrefill }) {
               )}
             </div>
             <Select value={toId} onValueChange={setToId} disabled={locked}>
-              <SelectTrigger className="h-11 w-[150px] shrink-0 rounded-full sm:w-[210px]">
+              <SelectTrigger aria-label="Asset to receive" className="h-11 w-[150px] shrink-0 rounded-full sm:w-[210px]">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>

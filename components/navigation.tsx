@@ -19,7 +19,7 @@ export function Navigation() {
             <span className="font-bold text-lg hidden sm:inline">Zolana</span>
           </Link>
 
-          <div className="hidden md:flex items-center gap-8">
+          <div className="hidden lg:flex items-center gap-8">
             <Link href="/zolana" className="text-sm hover:text-primary transition font-medium">
               Bridge
             </Link>
@@ -40,7 +40,7 @@ export function Navigation() {
             </Link>
           </div>
 
-          <div className="hidden md:flex gap-3">
+          <div className="hidden lg:flex gap-3">
             <Button variant="outline" asChild>
               <Link href="/login">Sign In</Link>
             </Button>
@@ -49,13 +49,13 @@ export function Navigation() {
             </Button>
           </div>
 
-          <button className="md:hidden" onClick={() => setIsOpen(!isOpen)}>
+          <button className="lg:hidden" aria-label="Toggle navigation menu" onClick={() => setIsOpen(!isOpen)}>
             {isOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
         </div>
 
         {isOpen && (
-          <div className="md:hidden pb-4 space-y-3">
+          <div className="lg:hidden pb-4 space-y-3">
             <Link href="/zolana" className="block text-sm hover:text-primary transition font-medium">
               Bridge
             </Link>

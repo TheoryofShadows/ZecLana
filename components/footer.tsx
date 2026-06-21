@@ -100,13 +100,13 @@ export function Footer() {
               © 2025 Zolana. &ldquo;20 years from now: Bitcoin, Solana, ZEC.&rdquo; — Mert Mumtaz
             </p>
             <div className="flex gap-4">
-              <Link href="#" className="text-muted-foreground hover:text-foreground transition">
+              <Link href="#" aria-label="Twitter" className="text-muted-foreground hover:text-foreground transition">
                 <Twitter size={20} />
               </Link>
-              <Link href="#" className="text-muted-foreground hover:text-foreground transition">
+              <Link href="#" aria-label="GitHub" className="text-muted-foreground hover:text-foreground transition">
                 <Github size={20} />
               </Link>
-              <Link href="#" className="text-muted-foreground hover:text-foreground transition">
+              <Link href="#" aria-label="Email" className="text-muted-foreground hover:text-foreground transition">
                 <Mail size={20} />
               </Link>
             </div>

@@ -57,5 +57,14 @@ export function buildPayLink(origin: string, req: PaymentRequest): string {
 /** Read a request from a URL hash like "#req=...". */
 export function readRequestFromHash(hash: string): PaymentRequest | null {
   const match = hash.replace(/^#/, "").match(/(?:^|&)req=([^&]+)/)
-  return match ? decodeRequest(decodeURIComponent(match[1])) : null
+  if (!match) return null
+  // A malformed percent-escape (e.g. a stray "%") makes decodeURIComponent throw;
+  // fall back to the raw value so a crafted link can never crash the pay page.
+  let value: string
+  try {
+    value = decodeURIComponent(match[1])
+  } catch {
+    value = match[1]
+  }
+  return decodeRequest(value)
 }
