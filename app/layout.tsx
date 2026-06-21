@@ -5,9 +5,9 @@ import { GeistMono } from "geist/font/mono"
 import "./globals.css"
 
 export const metadata: Metadata = {
-  title: "Zolana - Encrypted Bitcoin on the Fastest Chain",
-  description: "Send money privately like Satoshi dreamed. Private like Zcash. Instant like Solana.",
-  generator: "v0.app",
+  title: "Zolana — Non-custodial cross-chain ZEC swaps",
+  description:
+    "Swap ZEC between Zcash and Solana — no account, no KYC. Non-custodial settlement via the NEAR Intents solver network, with a privacy meter that flags metadata leaks.",
   icons: {
     icon: [
       {

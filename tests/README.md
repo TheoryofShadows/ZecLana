@@ -6,8 +6,9 @@ Comprehensive, hermetic coverage for the ZEC ⇄ Solana swap feature.
 
 - `unit/` — Vitest (jsdom). Pure logic and browser-module behavior: amount math,
   privacy assessment, chain/address validation, payment-link encode/decode (with
-  fuzzing), curated assets, spot estimate, local history, wallet connector, the
-  1Click client (`fetch` mocked), and the browser swap client (`client.ts`).
+  fuzzing), curated assets, spot estimate, local history, multi-wallet detection
+  (Wallet Standard + EIP-6963), Zashi ZIP-321 URIs, the 1Click client (`fetch`
+  mocked), and the browser swap client (`client.ts`).
 - `e2e/` — Playwright against the static export (served by `serve-out.mjs`), with
   **all 1Click API calls mocked** (`mocks.ts`) for determinism. Covers the full
   configure→reserve

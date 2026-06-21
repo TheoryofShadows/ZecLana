@@ -5,6 +5,13 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Menu, X } from "lucide-react"
 
+const NAV_LINKS = [
+  { href: "/zolana", label: "Swap", emphasis: true },
+  { href: "/request", label: "Request" },
+  { href: "/#how-it-works", label: "How It Works" },
+  { href: "https://github.com/TheoryofShadows/ZecLana", label: "GitHub", external: true },
+]
+
 export function Navigation() {
   const [isOpen, setIsOpen] = useState(false)
 
@@ -20,32 +27,22 @@ export function Navigation() {
           </Link>
 
           <div className="hidden lg:flex items-center gap-8">
-            <Link href="/zolana" className="text-sm hover:text-primary transition font-medium">
-              Bridge
-            </Link>
-            <Link href="/request" className="text-sm hover:text-primary transition">
-              Request
-            </Link>
-            <Link href="/privacy-2.0" className="text-sm hover:text-primary transition">
-              Privacy 2.0
-            </Link>
-            <Link href="/tachyon" className="text-sm hover:text-primary transition">
-              Tachyon
-            </Link>
-            <Link href="#how-it-works" className="text-sm hover:text-primary transition">
-              How It Works
-            </Link>
-            <Link href="/dashboard" className="text-sm hover:text-primary transition">
-              Dashboard
-            </Link>
+            {NAV_LINKS.map((l) => (
+              <Link
+                key={l.href}
+                href={l.href}
+                target={l.external ? "_blank" : undefined}
+                rel={l.external ? "noreferrer" : undefined}
+                className={`text-sm hover:text-primary transition ${l.emphasis ? "font-medium" : ""}`}
+              >
+                {l.label}
+              </Link>
+            ))}
           </div>
 
           <div className="hidden lg:flex gap-3">
-            <Button variant="outline" asChild>
-              <Link href="/login">Sign In</Link>
-            </Button>
             <Button asChild className="gap-2">
-              <Link href="/send">Send Money</Link>
+              <Link href="/zolana">Open the Swap</Link>
             </Button>
           </div>
 
@@ -56,30 +53,20 @@ export function Navigation() {
 
         {isOpen && (
           <div className="lg:hidden pb-4 space-y-3">
-            <Link href="/zolana" className="block text-sm hover:text-primary transition font-medium">
-              Bridge
-            </Link>
-            <Link href="/request" className="block text-sm hover:text-primary transition">
-              Request
-            </Link>
-            <Link href="/privacy-2.0" className="block text-sm hover:text-primary transition">
-              Privacy 2.0
-            </Link>
-            <Link href="/tachyon" className="block text-sm hover:text-primary transition">
-              Tachyon
-            </Link>
-            <Link href="#how-it-works" className="block text-sm hover:text-primary transition">
-              How It Works
-            </Link>
-            <Link href="/dashboard" className="block text-sm hover:text-primary transition">
-              Dashboard
-            </Link>
+            {NAV_LINKS.map((l) => (
+              <Link
+                key={l.href}
+                href={l.href}
+                target={l.external ? "_blank" : undefined}
+                rel={l.external ? "noreferrer" : undefined}
+                className={`block text-sm hover:text-primary transition ${l.emphasis ? "font-medium" : ""}`}
+              >
+                {l.label}
+              </Link>
+            ))}
             <div className="flex gap-3 pt-2 flex-col">
-              <Button variant="outline" asChild className="w-full bg-transparent">
-                <Link href="/login">Sign In</Link>
-              </Button>
               <Button asChild className="w-full">
-                <Link href="/send">Send Money</Link>
+                <Link href="/zolana">Open the Swap</Link>
               </Button>
             </div>
           </div>

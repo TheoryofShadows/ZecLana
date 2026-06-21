@@ -25,6 +25,7 @@ import { chainMeta, chainLabel } from "@/lib/swap/chains"
 import { assessPrivacy } from "@/lib/swap/privacy"
 import { saveSwap, updateSwapStatus } from "@/lib/swap/history"
 import { loadAssets, requestQuote, fetchStatus } from "@/lib/swap/client"
+import { buildZip321Uri } from "@/lib/swap/zashi"
 import { PrivacyMeter } from "./privacy-meter"
 import { WalletFillButton } from "./wallet-fill-button"
 
@@ -332,6 +333,12 @@ export function SwapWidget({ prefill }: { prefill?: SwapPrefill }) {
     const failed = status?.status === "FAILED" || status?.status === "EXPIRED" || status?.status === "REFUNDED"
     const success = status?.status === "SUCCESS"
     const activeRank = status ? STATUS_RANK[status.status] : 0
+    // Paying with ZEC: encode the deposit as a ZIP-321 payment request so Zcash
+    // wallets (Zashi) can scan/open it with the exact amount pre-filled.
+    const isZecDeposit = refundChain === "zec"
+    const depositUri = isZecDeposit
+      ? buildZip321Uri(liveQuote.depositAddress, liveQuote.amountInFormatted)
+      : liveQuote.depositAddress
 
     return (
       <div className="swap-frame p-[1.5px]">
@@ -381,8 +388,16 @@ export function SwapWidget({ prefill }: { prefill?: SwapPrefill }) {
 
               <div className="mb-5 flex flex-col items-center gap-4">
                 <div className="rounded-2xl border border-border bg-white p-3 shadow-sm">
-                  <QRCodeSVG value={liveQuote.depositAddress} size={168} marginSize={1} />
+                  <QRCodeSVG value={depositUri} size={168} marginSize={1} />
                 </div>
+                {isZecDeposit && (
+                  <a
+                    href={depositUri}
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-primary/30 bg-primary/5 px-3 py-1.5 text-sm font-medium text-primary hover:bg-primary/10"
+                  >
+                    <ShieldCheck size={14} /> Open in Zashi
+                  </a>
+                )}
                 <div className="w-full rounded-xl border border-border bg-muted/30 p-3">
                   <div className="mb-1 flex items-center justify-between">
                     <span className="text-xs text-muted-foreground">Deposit address ({chainLabel(refundChain)})</span>

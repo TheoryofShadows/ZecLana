@@ -1,11 +1,11 @@
 import Link from "next/link"
-import { Twitter, Github, Mail } from "lucide-react"
+import { Github } from "lucide-react"
 
 export function Footer() {
   return (
     <footer className="border-t border-border bg-muted/30 py-16 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
           <div>
             <div className="flex items-center gap-2 mb-4">
               <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
@@ -14,7 +14,7 @@ export function Footer() {
               <span className="font-bold">Zolana</span>
             </div>
             <p className="text-sm text-muted-foreground">
-              Encrypted Bitcoin at scale. Zcash shielding + Solana speed + Helius reliability.
+              Non-custodial cross-chain ZEC swaps. No account, no KYC — settled by the NEAR Intents solver network.
             </p>
           </div>
 
@@ -23,93 +23,68 @@ export function Footer() {
             <ul className="space-y-2 text-sm">
               <li>
                 <Link href="/zolana" className="text-muted-foreground hover:text-foreground transition">
-                  Bridge
+                  Swap
                 </Link>
               </li>
               <li>
-                <Link href="/privacy-2.0" className="text-muted-foreground hover:text-foreground transition">
-                  Privacy 2.0
-                </Link>
-              </li>
-              <li>
-                <Link href="/tachyon" className="text-muted-foreground hover:text-foreground transition">
-                  Tachyon Roadmap
+                <Link href="/request" className="text-muted-foreground hover:text-foreground transition">
+                  Request a payment
                 </Link>
               </li>
             </ul>
           </div>
 
           <div>
-            <h4 className="font-semibold mb-4">Developers</h4>
+            <h4 className="font-semibold mb-4">Resources</h4>
             <ul className="space-y-2 text-sm">
               <li>
-                <Link href="#" className="text-muted-foreground hover:text-foreground transition">
-                  SDK Docs
-                </Link>
+                <a
+                  href="https://zashi.cash"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-muted-foreground hover:text-foreground transition"
+                >
+                  Zashi Wallet
+                </a>
               </li>
               <li>
-                <Link href="#" className="text-muted-foreground hover:text-foreground transition">
-                  GitHub
-                </Link>
+                <a
+                  href="https://near-intents.org"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-muted-foreground hover:text-foreground transition"
+                >
+                  NEAR Intents
+                </a>
               </li>
               <li>
-                <Link href="#" className="text-muted-foreground hover:text-foreground transition">
-                  Status Page
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          <div>
-            <h4 className="font-semibold mb-4">Vision</h4>
-            <ul className="space-y-2 text-sm">
-              <li>
-                <Link href="#" className="text-muted-foreground hover:text-foreground transition">
-                  Manifesto
-                </Link>
-              </li>
-              <li>
-                <Link href="#" className="text-muted-foreground hover:text-foreground transition">
-                  Community
-                </Link>
-              </li>
-              <li>
-                <Link href="#" className="text-muted-foreground hover:text-foreground transition">
-                  Careers
-                </Link>
+                <a
+                  href="https://github.com/TheoryofShadows/ZecLana"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-muted-foreground hover:text-foreground transition"
+                >
+                  Source code
+                </a>
               </li>
             </ul>
           </div>
         </div>
 
-        <div className="border-t border-border pt-8 mb-8">
-          <div className="flex flex-col sm:flex-row items-center gap-4 justify-center mb-8">
-            <div className="flex items-center gap-2 px-4 py-2 bg-primary/10 border border-primary/20 rounded-lg">
-              <span className="text-xs font-semibold text-primary">🛡️ Zolana Native</span>
-            </div>
-            <div className="flex items-center gap-2 px-4 py-2 bg-secondary/10 border border-secondary/20 rounded-lg">
-              <span className="text-xs font-semibold text-secondary">⚡ Powered by Helius Privacy 2.0</span>
-            </div>
-            <div className="flex items-center gap-2 px-4 py-2 bg-primary/10 border border-primary/20 rounded-lg">
-              <span className="text-xs font-semibold text-primary">🔐 Bitcoin-Grade Privacy</span>
-            </div>
-          </div>
-
+        <div className="border-t border-border pt-8">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
             <p className="text-sm text-muted-foreground">
-              © 2025 Zolana. &ldquo;20 years from now: Bitcoin, Solana, ZEC.&rdquo; — Mert Mumtaz
+              Non-custodial · no account · no KYC. You control your keys and addresses.
             </p>
-            <div className="flex gap-4">
-              <Link href="#" aria-label="Twitter" className="text-muted-foreground hover:text-foreground transition">
-                <Twitter size={20} />
-              </Link>
-              <Link href="#" aria-label="GitHub" className="text-muted-foreground hover:text-foreground transition">
-                <Github size={20} />
-              </Link>
-              <Link href="#" aria-label="Email" className="text-muted-foreground hover:text-foreground transition">
-                <Mail size={20} />
-              </Link>
-            </div>
+            <a
+              href="https://github.com/TheoryofShadows/ZecLana"
+              target="_blank"
+              rel="noreferrer"
+              aria-label="GitHub"
+              className="text-muted-foreground hover:text-foreground transition"
+            >
+              <Github size={20} />
+            </a>
           </div>
         </div>
       </div>
