@@ -3,10 +3,11 @@ import { Input } from "@/components/ui/input"
 import { Card } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { AlertCircle, User, Mail, Globe, Wallet } from "lucide-react"
+import type { RemittanceData } from "../types"
 
 interface RecipientStepProps {
-  data: any
-  onChange: (updates: any) => void
+  data: RemittanceData
+  onChange: (updates: Partial<RemittanceData>) => void
 }
 
 const COUNTRIES = [
@@ -29,7 +30,7 @@ export function RecipientStep({ data, onChange }: RecipientStepProps) {
     <div className="space-y-6">
       <div>
         <h2 className="text-2xl font-bold mb-2">Send to Recipient</h2>
-        <p className="text-muted-foreground">Enter the recipient's details to get started</p>
+        <p className="text-muted-foreground">Enter the recipient&apos;s details to get started</p>
       </div>
 
       <div className="space-y-4">
@@ -94,7 +95,7 @@ export function RecipientStep({ data, onChange }: RecipientStepProps) {
               className="pl-10 font-mono text-sm"
             />
           </div>
-          <p className="text-xs text-muted-foreground mt-1">We'll verify this address before sending</p>
+          <p className="text-xs text-muted-foreground mt-1">We&apos;ll verify this address before sending</p>
         </div>
       </div>
 

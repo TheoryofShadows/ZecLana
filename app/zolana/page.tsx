@@ -4,135 +4,213 @@ import { Navigation } from "@/components/navigation"
 import { Footer } from "@/components/footer"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
-import { ArrowRight, TrendingUp, Lock, Zap } from "lucide-react"
+import { SwapWidget } from "@/components/swap/swap-widget"
+import { SwapHistory } from "@/components/swap/swap-history"
+import { ArrowRight, Lock, Zap, Sparkles, Wallet, ShieldCheck, EyeOff, Receipt } from "lucide-react"
 import Link from "next/link"
-import { useState, useEffect } from "react"
+
+const TRUST_STATS = [
+  { value: "0", label: "Accounts required" },
+  { value: "0", label: "KYC checks" },
+  { value: "~2s", label: "Solana finality" },
+  { value: "24/7", label: "Solver network" },
+]
+
+const FLOW_STEPS = [
+  {
+    n: 1,
+    accent: "primary" as const,
+    title: "Quote the swap",
+    body: "Pick a direction — native ZEC to ZEC-on-Solana (szEC), SOL, or USDC — and get a live rate from the solver network.",
+  },
+  {
+    n: 2,
+    accent: "secondary" as const,
+    title: "Add your addresses",
+    body: "Enter where you want funds delivered and a refund address. No sign-up, no email, no identity documents.",
+  },
+  {
+    n: 3,
+    accent: "primary" as const,
+    title: "Send to deposit address",
+    body: "Reserve a quote and send the exact amount to a one-time deposit address. Solvers settle it atomically.",
+  },
+  {
+    n: 4,
+    accent: "secondary" as const,
+    title: "Receive on the other side",
+    body: "Track status live until the destination asset lands in your wallet. Funds never touch a custodian.",
+  },
+]
 
 export default function ZolanaPage() {
-  const [zecPrice, setZecPrice] = useState(350)
-  const [szecPrice, setSzecPrice] = useState(350.02)
-  const [liquidity, setLiquidity] = useState(56600000)
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setZecPrice((prev) => prev + (Math.random() - 0.5) * 2)
-      setSzecPrice((prev) => prev + (Math.random() - 0.5) * 2)
-    }, 3000)
-    return () => clearInterval(interval)
-  }, [])
-
   return (
     <main className="min-h-screen bg-gradient-to-b from-background via-background to-muted/20">
       <Navigation />
 
-      <section className="pt-20 pb-32 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-5xl mx-auto">
+      <section className="relative overflow-hidden px-4 pt-20 pb-32 sm:px-6 lg:px-8">
+        {/* ambient backdrop */}
+        <div className="pointer-events-none absolute inset-0 -z-10">
+          <div className="absolute left-1/2 top-10 h-72 w-[40rem] -translate-x-1/2 rounded-full bg-primary/10 blur-3xl" />
+          <div className="absolute right-1/4 top-40 h-64 w-96 rounded-full bg-secondary/10 blur-3xl" />
+        </div>
+
+        <div className="mx-auto max-w-5xl">
           {/* Header */}
-          <div className="text-center mb-16">
-            <h1 className="text-5xl sm:text-6xl font-bold mb-6 text-balance">
-              Zolana Bridge
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary"> Live</span>
+          <div className="mb-10 text-center">
+            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-4 py-2">
+              <Sparkles size={16} className="text-primary" />
+              <span className="text-sm text-primary">Live · non-custodial · powered by NEAR Intents</span>
+            </div>
+
+            <h1 className="mb-6 text-balance text-5xl font-bold sm:text-6xl">
+              Move ZEC across chains.
+              <span className="bg-gradient-to-r from-primary via-secondary to-primary bg-clip-text text-transparent">
+                {" "}
+                No account. No KYC.
+              </span>
             </h1>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto text-balance">
-              Real-time ZEC ↔ szEC (Solana ZEC) bridge powered by Near Intents and Raydium liquidity.
+            <p className="mx-auto max-w-2xl text-balance text-xl text-muted-foreground">
+              Swap ZEC between Zcash and Solana — and back — through a decentralized solver network. Your keys, your
+              addresses, zero surveillance.
             </p>
           </div>
 
-          {/* Price Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
-            <Card className="p-8 border-primary/20 bg-gradient-to-br from-primary/5 to-transparent">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="font-semibold text-lg">ZEC Price</h3>
-                <Lock size={20} className="text-primary" />
+          {/* Live swap widget */}
+          <div className="mx-auto mb-6 max-w-xl">
+            <SwapWidget />
+          </div>
+
+          {/* Self-custodial history + request CTA */}
+          <div className="mx-auto mb-8 max-w-xl space-y-4">
+            <SwapHistory />
+            <Link
+              href="/request"
+              className="flex items-center justify-between rounded-2xl border border-border bg-card p-4 transition-colors hover:border-primary/40"
+            >
+              <span className="flex items-center gap-3">
+                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                  <Receipt size={18} />
+                </span>
+                <span>
+                  <span className="block font-medium">Request a payment</span>
+                  <span className="block text-xs text-muted-foreground">
+                    Get paid in private ZEC from any chain — no account needed
+                  </span>
+                </span>
+              </span>
+              <ArrowRight size={18} className="text-muted-foreground" />
+            </Link>
+          </div>
+
+          {/* Trust stats */}
+          <div className="mx-auto mb-20 grid max-w-2xl grid-cols-2 gap-4 sm:grid-cols-4">
+            {TRUST_STATS.map((s) => (
+              <div key={s.label} className="text-center">
+                <div className="text-2xl font-bold text-primary sm:text-3xl">{s.value}</div>
+                <p className="text-xs text-muted-foreground">{s.label}</p>
               </div>
-              <div className="text-4xl font-bold mb-2">${zecPrice.toFixed(2)}</div>
-              <p className="text-sm text-muted-foreground">Zcash mainnet</p>
+            ))}
+          </div>
+
+          {/* Why it's private */}
+          <div className="mb-12 grid grid-cols-1 gap-6 md:grid-cols-3">
+            <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-transparent p-6">
+              <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                <Lock size={20} />
+              </div>
+              <h3 className="mb-2 text-lg font-semibold">No account, no KYC</h3>
+              <p className="text-sm text-muted-foreground">
+                Swaps settle through a decentralized solver network. You never create an account or hand over identity
+                documents — funds move directly to the address you control.
+              </p>
             </Card>
 
-            <Card className="p-8 border-secondary/20 bg-gradient-to-br from-secondary/5 to-transparent">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="font-semibold text-lg">szEC Price</h3>
-                <Zap size={20} className="text-secondary" />
+            <Card className="border-secondary/20 bg-gradient-to-br from-secondary/5 to-transparent p-6">
+              <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-xl bg-secondary/10 text-secondary">
+                <Zap size={20} />
               </div>
-              <div className="text-4xl font-bold mb-2">${szecPrice.toFixed(2)}</div>
-              <p className="text-sm text-muted-foreground">Solana token</p>
+              <h3 className="mb-2 text-lg font-semibold">ZEC, both ways</h3>
+              <p className="text-sm text-muted-foreground">
+                Move native ZEC onto Solana as szEC for instant, low-fee transfers — then unwrap back to native ZEC on
+                Zcash whenever you want. SOL and USDC routes included.
+              </p>
+            </Card>
+
+            <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-transparent p-6">
+              <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                <EyeOff size={20} />
+              </div>
+              <h3 className="mb-2 text-lg font-semibold">You stay in control</h3>
+              <p className="text-sm text-muted-foreground">
+                Every swap has a refund address. If a route can&apos;t complete, your funds are returned automatically —
+                no support tickets, no frozen balances.
+              </p>
             </Card>
           </div>
 
-          {/* Liquidity Info */}
-          <Card className="p-8 mb-12 border-border/50 bg-gradient-to-r from-primary/5 via-secondary/5 to-primary/5">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="font-semibold text-lg mb-2">Raydium Liquidity</h3>
-                <p className="text-muted-foreground">Deep, stable ZEC/USDC pool on Solana</p>
-              </div>
-              <div className="text-right">
-                <div className="text-3xl font-bold text-secondary">${(liquidity / 1000000).toFixed(1)}M</div>
-                <p className="text-sm text-muted-foreground flex items-center gap-2 justify-end">
-                  <TrendingUp size={16} className="text-secondary" />
-                  Live liquidity feed
-                </p>
-              </div>
+          {/* Supported routes */}
+          <div className="mb-12 rounded-2xl border border-border bg-muted/20 p-6">
+            <div className="mb-4 flex items-center gap-2">
+              <Wallet size={18} className="text-secondary" />
+              <h2 className="text-lg font-semibold">Supported routes</h2>
             </div>
-          </Card>
+            <div className="flex flex-wrap gap-2">
+              {[
+                "ZEC ⇄ ZEC on Solana (szEC)",
+                "ZEC ⇄ SOL",
+                "ZEC ⇄ USDC",
+                "SOL ⇄ USDC",
+              ].map((r) => (
+                <span
+                  key={r}
+                  className="rounded-full border border-border bg-card px-3 py-1.5 text-sm text-muted-foreground"
+                >
+                  {r}
+                </span>
+              ))}
+            </div>
+          </div>
 
-          {/* Bridge Flow */}
-          <div className="bg-gradient-to-r from-primary/5 to-secondary/5 border border-border rounded-2xl p-8 mb-12">
-            <h2 className="text-2xl font-bold mb-8 text-center">The Zolana Flow</h2>
+          {/* Flow */}
+          <div className="mb-12 rounded-2xl border border-border bg-gradient-to-r from-primary/5 to-secondary/5 p-8">
+            <div className="mb-8 text-center">
+              <h2 className="text-2xl font-bold">How a swap works</h2>
+              <p className="mt-2 text-sm text-muted-foreground">Four steps, no intermediaries holding your funds.</p>
+            </div>
 
-            <div className="space-y-6">
-              <div className="flex items-start gap-4">
-                <div className="flex-shrink-0 w-12 h-12 bg-primary/20 rounded-lg flex items-center justify-center font-bold text-primary">
-                  1
+            <div className="grid gap-6 sm:grid-cols-2">
+              {FLOW_STEPS.map((step) => (
+                <div key={step.n} className="flex items-start gap-4">
+                  <div
+                    className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl font-bold ${
+                      step.accent === "primary"
+                        ? "bg-primary/15 text-primary"
+                        : "bg-secondary/15 text-secondary"
+                    }`}
+                  >
+                    {step.n}
+                  </div>
+                  <div>
+                    <h3 className="mb-1 font-semibold">{step.title}</h3>
+                    <p className="text-sm text-muted-foreground">{step.body}</p>
+                  </div>
                 </div>
-                <div className="flex-1">
-                  <h3 className="font-semibold mb-2">Shield on Zcash</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Deposit ZEC into shielded pool via Zashi wallet. Your balance is encrypted using zk-SNARKs.
-                  </p>
-                </div>
-              </div>
+              ))}
+            </div>
 
-              <div className="flex items-start gap-4">
-                <div className="flex-shrink-0 w-12 h-12 bg-secondary/20 rounded-lg flex items-center justify-center font-bold text-secondary">
-                  2
-                </div>
-                <div className="flex-1">
-                  <h3 className="font-semibold mb-2">Bridge via Helius</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Helius staked RPC routes your shielded ZEC → szEC on Solana via Near Intents atomic swap.
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-4">
-                <div className="flex-shrink-0 w-12 h-12 bg-primary/20 rounded-lg flex items-center justify-center font-bold text-primary">
-                  3
-                </div>
-                <div className="flex-1">
-                  <h3 className="font-semibold mb-2">Send on Solana</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Instant settlement. szEC arrives in recipient's wallet in ~2 seconds. Zero public trace.
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-4">
-                <div className="flex-shrink-0 w-12 h-12 bg-secondary/20 rounded-lg flex items-center justify-center font-bold text-secondary">
-                  4
-                </div>
-                <div className="flex-1">
-                  <h3 className="font-semibold mb-2">Unshield on Arrival</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Recipient uses Zashi to unshield szEC back to ZEC or swap to any Solana token. Privacy intact.
-                  </p>
-                </div>
-              </div>
+            <div className="mt-8 flex items-start gap-2 rounded-xl border border-border bg-card/60 p-4 text-sm text-muted-foreground">
+              <ShieldCheck size={16} className="mt-0.5 shrink-0 text-secondary" />
+              <span>
+                Native ZEC can&apos;t live in a Solana wallet, so the ZEC side always uses a deposit-address flow. That
+                is inherent to cross-chain settlement — not a limitation of the app — and it keeps the swap
+                non-custodial end to end.
+              </span>
             </div>
           </div>
 
           {/* CTA */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <div className="flex flex-col justify-center gap-4 sm:flex-row">
             <Button size="lg" asChild className="gap-2">
               <Link href="https://zashi.cash" target="_blank">
                 Open Zashi Wallet

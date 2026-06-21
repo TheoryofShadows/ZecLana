@@ -1,26 +1,13 @@
 "use client"
 
-import { useState } from "react"
+import { useCallback, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { RecipientStep } from "./steps/recipient-step"
 import { AmountStep } from "./steps/amount-step"
 import { ReviewStep } from "./steps/review-step"
-import { ArrowLeft, Check } from "lucide-react"
-
-type Step = "recipient" | "amount" | "review"
-
-interface RemittanceData {
-  recipientName: string
-  recipientEmail: string
-  recipientCountry: string
-  recipientWallet: string
-  amount: string
-  currency: string
-  exchangeRate: number
-  receiveAmount: string
-  note: string
-}
+import { ArrowLeft, Check, CheckCircle2, Shield } from "lucide-react"
+import type { RemittanceData, Step } from "./types"
 
 const INITIAL_DATA: RemittanceData = {
   recipientName: "",
@@ -38,23 +25,81 @@ export function SendRemittanceForm() {
   const [currentStep, setCurrentStep] = useState<Step>("recipient")
   const [data, setData] = useState<RemittanceData>(INITIAL_DATA)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [completed, setCompleted] = useState<{ data: RemittanceData; txId: string } | null>(null)
 
-  const handleStepChange = (step: Step) => {
+  const handleStepChange = useCallback((step: Step) => {
     setCurrentStep(step)
-  }
+  }, [])
 
-  const handleDataChange = (updates: Partial<RemittanceData>) => {
+  const handleDataChange = useCallback((updates: Partial<RemittanceData>) => {
     setData((prev) => ({ ...prev, ...updates }))
-  }
+  }, [])
 
   const handleSubmit = async () => {
     setIsSubmitting(true)
     // Simulate API call
     await new Promise((resolve) => setTimeout(resolve, 2000))
     setIsSubmitting(false)
-    // Reset form after successful submission
+    // Surface a confirmation screen, then reset the form state.
+    const txId = `zol_${Math.random().toString(36).slice(2, 10)}${Date.now().toString(36)}`
+    setCompleted({ data, txId })
     setData(INITIAL_DATA)
     setCurrentStep("recipient")
+  }
+
+  const handleSendAnother = () => {
+    setCompleted(null)
+  }
+
+  if (completed) {
+    const { data: sent, txId } = completed
+    return (
+      <div className="w-full max-w-2xl">
+        <Card className="p-8 text-center">
+          <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-secondary/15 shield-glow">
+            <CheckCircle2 size={36} className="text-secondary" />
+          </div>
+          <h2 className="text-2xl font-bold mb-2">Remittance Sent</h2>
+          <p className="text-muted-foreground mb-6">
+            Your private transfer to {sent.recipientName} is on its way.
+          </p>
+
+          <div className="space-y-3 text-left rounded-lg border border-border p-4 mb-6">
+            <div className="flex justify-between">
+              <span className="text-sm text-muted-foreground">Recipient</span>
+              <span className="font-medium">{sent.recipientName}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-sm text-muted-foreground">You sent</span>
+              <span className="font-medium">
+                {sent.amount} {sent.currency}
+              </span>
+            </div>
+            {sent.receiveAmount && (
+              <div className="flex justify-between">
+                <span className="text-sm text-muted-foreground">Recipient receives</span>
+                <span className="font-medium text-secondary">
+                  {sent.receiveAmount} {sent.currency}
+                </span>
+              </div>
+            )}
+            <div className="flex justify-between">
+              <span className="text-sm text-muted-foreground">Transaction ID</span>
+              <span className="font-mono text-xs">{txId}</span>
+            </div>
+          </div>
+
+          <p className="flex items-center justify-center gap-2 text-xs text-muted-foreground mb-6">
+            <Shield size={14} className="text-secondary" />
+            Encrypted end-to-end. Usually completes in 5-10 minutes.
+          </p>
+
+          <Button onClick={handleSendAnother} className="w-full">
+            Send Another
+          </Button>
+        </Card>
+      </div>
+    )
   }
 
   const isRecipientValid = data.recipientName && data.recipientEmail && data.recipientWallet && data.recipientCountry

@@ -65,15 +65,15 @@ export default function TachyonPage() {
             <p className="text-sm text-muted-foreground mb-4">Mainnet launch estimate</p>
             <div className="text-6xl font-bold text-primary mb-4">{daysLeft} days</div>
             <p className="text-lg font-semibold mb-2">Until Project Tachyon Mainnet</p>
-            <p className="text-sm text-muted-foreground">Zcash's next-generation privacy architecture</p>
+            <p className="text-sm text-muted-foreground">Zcash&apos;s next-generation privacy architecture</p>
           </Card>
 
           {/* What is Tachyon */}
           <Card className="p-8 mb-12 border-secondary/20 bg-gradient-to-br from-secondary/5 to-transparent">
             <h2 className="text-2xl font-bold mb-4">What is Project Tachyon?</h2>
             <p className="text-muted-foreground mb-6">
-              Project Tachyon is Zcash's next-generation upgrade enabling thousands of private transactions per second.
-              It's the answer to Bitcoin's UTXO model meeting Solana's throughput.
+              Project Tachyon is Zcash&apos;s next-generation upgrade enabling thousands of private transactions per second.
+              It&apos;s the answer to Bitcoin&apos;s UTXO model meeting Solana&apos;s throughput.
             </p>
 
             <div className="space-y-4">

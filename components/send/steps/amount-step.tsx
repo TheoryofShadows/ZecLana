@@ -4,11 +4,12 @@ import { Input } from "@/components/ui/input"
 import { Card } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ArrowRightLeft, TrendingUp } from "lucide-react"
-import { useState, useEffect } from "react"
+import { useEffect } from "react"
+import type { RemittanceData } from "../types"
 
 interface AmountStepProps {
-  data: any
-  onChange: (updates: any) => void
+  data: RemittanceData
+  onChange: (updates: Partial<RemittanceData>) => void
 }
 
 const CURRENCIES = [
@@ -31,20 +32,16 @@ const EXCHANGE_RATES: Record<string, number> = {
 }
 
 export function AmountStep({ data, onChange }: AmountStepProps) {
-  const [exchangeRate, setExchangeRate] = useState(1)
-  const [receiveAmount, setReceiveAmount] = useState("")
+  // Derive conversion values from the current input rather than mirroring them in state.
+  const exchangeRate = EXCHANGE_RATES[data.currency] || 1
+  const receiveAmount = data.amount ? (Number.parseFloat(data.amount) * exchangeRate).toFixed(2) : ""
 
+  // Sync the derived values up to the parent so the review step can display them.
   useEffect(() => {
-    const rate = EXCHANGE_RATES[data.currency] || 1
-    setExchangeRate(rate)
-
     if (data.amount) {
-      const amount = Number.parseFloat(data.amount)
-      const received = (amount * rate).toFixed(2)
-      setReceiveAmount(received)
-      onChange({ exchangeRate: rate, receiveAmount: received })
+      onChange({ exchangeRate, receiveAmount })
     }
-  }, [data.currency, data.amount])
+  }, [data.amount, exchangeRate, receiveAmount, onChange])
 
   const handleAmountChange = (value: string) => {
     onChange({ amount: value })
