@@ -218,7 +218,7 @@ export default function ZolanaPage() {
               </Link>
             </Button>
             <Button size="lg" variant="outline" asChild>
-              <Link href="/privacy-2.0">Learn about Privacy 2.0</Link>
+              <Link href="/request">Request a payment</Link>
             </Button>
           </div>
         </div>

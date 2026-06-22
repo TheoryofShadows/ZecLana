@@ -4,23 +4,27 @@ import { ArrowDown } from "lucide-react"
 const steps = [
   {
     number: "1",
-    title: "Shield on Zcash",
-    description: "Connect Zashi wallet. Deposit ZEC into shielded pool. Amount is encrypted with zk-SNARKs.",
+    title: "Quote the swap",
+    description:
+      "Pick a direction — native ZEC to ZEC-on-Solana (szEC), SOL, or USDC — and get a live rate from the solver network.",
   },
   {
     number: "2",
-    title: "Bridge via Helius",
-    description: "Helius routes shielded ZEC → szEC on Solana via Near Intents atomic swap. Instant atomic settlement.",
+    title: "Add your addresses",
+    description:
+      "Enter where you want funds delivered and a refund address. No sign-up, no email, no identity documents.",
   },
   {
     number: "3",
-    title: "Send on Solana",
-    description: "szEC arrives in recipient's wallet in 2-5 seconds. Zero public trace. No validator sees transaction.",
+    title: "Send to the deposit address",
+    description:
+      "Reserve a quote and send the exact amount to a one-time deposit address (scan it into Zashi for the ZEC side). Solvers settle it.",
   },
   {
     number: "4",
-    title: "Unshield on Arrival",
-    description: "Recipient uses Zashi to unshield szEC back to ZEC or swap to any token. Privacy intact forever.",
+    title: "Receive on the other side",
+    description:
+      "Track status live until the destination asset lands in your wallet. Funds never touch a custodian.",
   },
 ]
 
@@ -29,9 +33,9 @@ export function HowItWorks() {
     <section id="how-it-works" className="py-20 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-16">
-          <h2 className="text-4xl sm:text-5xl font-bold mb-4">The Zolana Flow</h2>
+          <h2 className="text-4xl sm:text-5xl font-bold mb-4">How a swap works</h2>
           <p className="text-xl text-muted-foreground">
-            Four steps to send private remittances like Satoshi dreamed. Zero surveillance. Bitcoin-grade privacy.
+            Four steps, no intermediaries holding your funds.
           </p>
         </div>
 

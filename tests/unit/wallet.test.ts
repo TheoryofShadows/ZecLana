@@ -1,11 +1,10 @@
-import { describe, it, expect, vi } from "vitest"
-import { walletKindForChain, isWalletAvailable, connectForChain, WalletError } from "@/lib/swap/wallet"
-
-type W = Record<string, unknown>
+import { describe, it, expect, vi, afterEach } from "vitest"
+import { getWallets } from "@wallet-standard/app"
+import { walletKindForChain, detectWallets, installLinks } from "@/lib/swap/wallet"
 
 describe("walletKindForChain", () => {
   it("maps chains to wallet kinds", () => {
-    expect(walletKindForChain("sol")).toBe("sol")
+    expect(walletKindForChain("sol")).toBe("solana")
     expect(walletKindForChain("eth")).toBe("evm")
     expect(walletKindForChain("base")).toBe("evm")
     expect(walletKindForChain("zec")).toBeNull()
@@ -14,59 +13,82 @@ describe("walletKindForChain", () => {
   })
 })
 
-describe("isWalletAvailable", () => {
-  it("is false with no injected provider", () => {
-    expect(isWalletAvailable("sol")).toBe(false)
-    expect(isWalletAvailable("evm")).toBe(false)
-  })
-  it("detects a Phantom Solana provider", () => {
-    ;(window as unknown as W).phantom = { solana: { isPhantom: true, connect: vi.fn() } }
-    expect(isWalletAvailable("sol")).toBe(true)
-  })
-  it("detects an EVM provider", () => {
-    ;(window as unknown as W).ethereum = { request: vi.fn() }
-    expect(isWalletAvailable("evm")).toBe(true)
+describe("installLinks", () => {
+  it("offers Solana and EVM install options", () => {
+    expect(installLinks("solana").map((l) => l.name)).toContain("Phantom")
+    expect(installLinks("evm").map((l) => l.name)).toContain("MetaMask")
   })
 })
 
-describe("connectForChain - Solana", () => {
-  it("returns the connected public key", async () => {
-    ;(window as unknown as W).phantom = {
-      solana: { isPhantom: true, connect: vi.fn().mockResolvedValue({ publicKey: { toString: () => "SOLPUBKEY" } }) },
+describe("detectWallets — Solana (Wallet Standard)", () => {
+  const cleanups: Array<() => void> = []
+  afterEach(() => {
+    cleanups.splice(0).forEach((fn) => fn())
+  })
+
+  function registerMockSolana(address: string, name = "MockSol") {
+    const wallet = {
+      version: "1.0.0" as const,
+      name,
+      icon: "data:image/svg+xml," as const,
+      chains: ["solana:mainnet"] as const,
+      accounts: [],
+      features: {
+        "standard:connect": {
+          version: "1.0.0",
+          connect: vi.fn().mockResolvedValue({ accounts: [{ address }] }),
+        },
+      },
     }
-    await expect(connectForChain("sol")).resolves.toBe("SOLPUBKEY")
+    cleanups.push(getWallets().register(wallet as never))
+    return wallet
+  }
+
+  it("detects a registered Solana wallet and returns its address on connect", async () => {
+    registerMockSolana("SoLAddR111")
+    const found = await detectWallets("solana")
+    const mock = found.find((w) => w.name === "MockSol")
+    expect(mock).toBeTruthy()
+    await expect(mock!.connect()).resolves.toBe("SoLAddR111")
   })
 
-  it("throws notInstalled WalletError when Phantom is absent", async () => {
-    await expect(connectForChain("sol")).rejects.toMatchObject({ notInstalled: true })
-  })
-
-  it("propagates a user rejection", async () => {
-    ;(window as unknown as W).phantom = {
-      solana: { isPhantom: true, connect: vi.fn().mockRejectedValue(new Error("User rejected the request")) },
+  it("ignores wallets without a solana chain", async () => {
+    const wallet = {
+      version: "1.0.0" as const,
+      name: "EthOnly",
+      icon: "data:," as const,
+      chains: ["eip155:1"] as const,
+      accounts: [],
+      features: { "standard:connect": { version: "1.0.0", connect: vi.fn() } },
     }
-    await expect(connectForChain("sol")).rejects.toThrow(/reject/i)
+    cleanups.push(getWallets().register(wallet as never))
+    const found = await detectWallets("solana")
+    expect(found.find((w) => w.name === "EthOnly")).toBeUndefined()
   })
 })
 
-describe("connectForChain - EVM", () => {
-  it("returns the first account", async () => {
-    ;(window as unknown as W).ethereum = { request: vi.fn().mockResolvedValue(["0xabc", "0xdef"]) }
-    await expect(connectForChain("eth")).resolves.toBe("0xabc")
+describe("detectWallets — EVM (EIP-6963)", () => {
+  it("discovers an announced provider and returns the first account", async () => {
+    const provider = { request: vi.fn().mockResolvedValue(["0xabc", "0xdef"]) }
+    const announce = () =>
+      window.dispatchEvent(
+        new CustomEvent("eip6963:announceProvider", {
+          detail: { info: { uuid: "u1", name: "MockMetaMask" }, provider },
+        }),
+      )
+    window.addEventListener("eip6963:requestProvider", announce)
+    try {
+      const found = await detectWallets("evm")
+      const mock = found.find((w) => w.name === "MockMetaMask")
+      expect(mock).toBeTruthy()
+      await expect(mock!.connect()).resolves.toBe("0xabc")
+      expect(provider.request).toHaveBeenCalledWith({ method: "eth_requestAccounts" })
+    } finally {
+      window.removeEventListener("eip6963:requestProvider", announce)
+    }
   })
 
-  it("throws notInstalled when no EVM provider exists", async () => {
-    await expect(connectForChain("base")).rejects.toMatchObject({ notInstalled: true })
-  })
-
-  it("throws when no account is returned", async () => {
-    ;(window as unknown as W).ethereum = { request: vi.fn().mockResolvedValue([]) }
-    await expect(connectForChain("eth")).rejects.toBeInstanceOf(WalletError)
-  })
-})
-
-describe("connectForChain - unsupported chain", () => {
-  it("throws for chains without a browser wallet", async () => {
-    await expect(connectForChain("zec")).rejects.toThrow(/no supported browser wallet/i)
+  it("returns an empty list when no EVM wallet announces or is injected", async () => {
+    expect(await detectWallets("evm")).toEqual([])
   })
 })

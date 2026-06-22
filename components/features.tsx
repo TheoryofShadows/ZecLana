@@ -1,37 +1,42 @@
 import { Card } from "@/components/ui/card"
-import { Lock, Zap, Globe, Shield, TrendingUp, Key } from "lucide-react"
+import { Lock, ShieldCheck, ArrowLeftRight, Receipt, EyeOff, Key } from "lucide-react"
 
 const features = [
   {
     icon: Lock,
-    title: "Bitcoin-Grade Privacy",
+    title: "No account, no KYC",
     description:
-      "Zcash zk-SNARKs ensure sender, receiver, and amounts are mathematically hidden. Even governments can't see.",
+      "Swaps settle through the NEAR Intents solver network. You never create an account or hand over identity documents.",
   },
   {
-    icon: Zap,
-    title: "Solana Speed",
-    description: "Sub-second finality means remittances arrive in 2-5 seconds, not hours or days.",
+    icon: ArrowLeftRight,
+    title: "ZEC, both ways",
+    description:
+      "Move native ZEC onto Solana as szEC, or back to Zcash. SOL and USDC routes are included too.",
   },
   {
-    icon: Globe,
-    title: "Truly Borderless",
-    description: "Send to any country. No geographic restrictions, capital controls, or tracking. Pure sovereignty.",
+    icon: EyeOff,
+    title: "Privacy meter",
+    description:
+      "A live meter flags when a swap would settle to or refund a transparent t-address, and nudges you toward shielded addresses.",
   },
   {
-    icon: Shield,
-    title: "Helius Reliability",
-    description: "Powered by Helius staked RPCs and Arcium zk-RPC for 99.99% uptime and zero middlemen.",
+    icon: Receipt,
+    title: "No-account payment requests",
+    description:
+      "Generate a shareable link that anyone can pay from any chain. The request lives in the link — nothing is stored on a server.",
   },
   {
-    icon: TrendingUp,
-    title: "Earn While Bridged",
-    description: "Shielded assets earn yield in Solana DeFi pools while maintaining privacy.",
+    icon: ShieldCheck,
+    title: "Refunds built in",
+    description:
+      "Every swap has a refund address. If a route can't complete, your funds are returned automatically — no support tickets.",
   },
   {
     icon: Key,
-    title: "Self-Custody Only",
-    description: "You control your keys. No platform owns your money. Just pure decentralized privacy.",
+    title: "Self-custody only",
+    description:
+      "Funds move directly to the address you control and never touch a custodian. The app never asks you to sign or spend.",
   },
 ]
 
@@ -40,9 +45,9 @@ export function Features() {
     <section id="features" className="py-20 px-4 sm:px-6 lg:px-8 bg-muted/30">
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-16">
-          <h2 className="text-4xl sm:text-5xl font-bold mb-4">The fusion of Zcash + Solana + Helius</h2>
+          <h2 className="text-4xl sm:text-5xl font-bold mb-4">Private by default, custodian-free</h2>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Bitcoin-grade privacy. Solana scalability. Helius infrastructure. Everything diaspora communities need.
+            Cross-chain ZEC swaps with the privacy trade-offs made visible — not hidden.
           </p>
         </div>
 

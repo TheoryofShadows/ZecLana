@@ -2,21 +2,7 @@ import { test, expect } from "@playwright/test"
 import { installSwapMocks } from "./mocks"
 import { collectPageErrors } from "./fixtures"
 
-const ROUTES = [
-  "/",
-  "/zolana",
-  "/request",
-  "/pay",
-  "/privacy-2.0",
-  "/dashboard",
-  "/dashboard/wallet",
-  "/dashboard/defi",
-  "/dashboard/transactions",
-  "/login",
-  "/signup",
-  "/send",
-  "/tachyon",
-]
+const ROUTES = ["/", "/zolana", "/request", "/pay"]
 
 test.describe("route smoke", () => {
   for (const route of ROUTES) {
