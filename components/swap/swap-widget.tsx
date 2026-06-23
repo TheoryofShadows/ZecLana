@@ -19,13 +19,14 @@ import {
   RefreshCw,
   PartyPopper,
   Receipt,
+  ChevronDown,
 } from "lucide-react"
 import type { Quote, SwapAsset, SwapStatus } from "@/lib/swap/types"
 import { chainMeta, chainLabel } from "@/lib/swap/chains"
 import { assessPrivacy } from "@/lib/swap/privacy"
 import { saveSwap, updateSwapStatus } from "@/lib/swap/history"
 import { loadAssets, requestQuote, fetchStatus } from "@/lib/swap/client"
-import { buildZip321Uri } from "@/lib/swap/zashi"
+import { buildZip321Uri, ZCASH_WALLET } from "@/lib/swap/zashi"
 import { PrivacyMeter } from "./privacy-meter"
 import { WalletFillButton } from "./wallet-fill-button"
 
@@ -97,6 +98,20 @@ function TokenIcon({ asset, size = 24 }: { asset?: SwapAsset; size?: number }) {
   )
 }
 
+function AssetChip({ asset, onClick }: { asset?: SwapAsset; onClick?: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="inline-flex h-11 shrink-0 items-center gap-2 rounded-full border border-border bg-card px-3 text-sm font-medium transition-colors hover:border-primary/40"
+    >
+      <TokenIcon asset={asset} size={18} />
+      <span className="max-w-[110px] truncate sm:max-w-[150px]">{asset?.label ?? "Select asset"}</span>
+      <ChevronDown size={14} className="text-muted-foreground" />
+    </button>
+  )
+}
+
 function CopyButton({ value, label = "Copy" }: { value: string; label?: string }) {
   const [copied, setCopied] = useState(false)
   return (
@@ -140,6 +155,8 @@ export function SwapWidget({ prefill }: { prefill?: SwapPrefill }) {
   const [recipient, setRecipient] = useState(prefill?.recipient ?? "")
   const [refundTo, setRefundTo] = useState("")
   const [rotated, setRotated] = useState(false)
+  const [assetsOpen, setAssetsOpen] = useState(false)
+  const [refundOpen, setRefundOpen] = useState(false)
 
   const [preview, setPreview] = useState<Quote | null>(null)
   const [previewLoading, setPreviewLoading] = useState(false)
@@ -177,12 +194,6 @@ export function SwapWidget({ prefill }: { prefill?: SwapPrefill }) {
     setPreview(null)
     setRotated((r) => !r)
   }, [fromId, toId, locked])
-
-  const setPair = useCallback((from: string, to: string) => {
-    setFromId(from)
-    setToId(to)
-    setPreview(null)
-  }, [])
 
   useEffect(() => {
     if (liveQuote) return
@@ -313,6 +324,9 @@ export function SwapWidget({ prefill }: { prefill?: SwapPrefill }) {
   const recipientValid = chainMeta(recipientChain).isValidAddress(recipient)
   const refundValid = chainMeta(refundChain).isValidAddress(refundTo)
   const amountValid = Number(amount) > 0
+  // Keep the empty form compact: the refund field appears once the user starts
+  // (or has content / paid request), so it's always visible before submit.
+  const showRefund = locked || refundOpen || !!refundTo || amountValid
 
   const fromUsd = fromAsset?.priceUsd && amountValid ? (Number(amount) * fromAsset.priceUsd).toFixed(2) : null
   const rate =
@@ -391,12 +405,24 @@ export function SwapWidget({ prefill }: { prefill?: SwapPrefill }) {
                   <QRCodeSVG value={depositUri} size={168} marginSize={1} />
                 </div>
                 {isZecDeposit && (
-                  <a
-                    href={depositUri}
-                    className="inline-flex items-center gap-1.5 rounded-lg border border-primary/30 bg-primary/5 px-3 py-1.5 text-sm font-medium text-primary hover:bg-primary/10"
-                  >
-                    <ShieldCheck size={14} /> Open in Zashi
-                  </a>
+                  <div className="flex flex-col items-center gap-1">
+                    <a
+                      href={depositUri}
+                      className="inline-flex items-center gap-1.5 rounded-lg border border-primary/30 bg-primary/5 px-3 py-1.5 text-sm font-medium text-primary hover:bg-primary/10"
+                    >
+                      <ShieldCheck size={14} /> Open in Zcash wallet
+                    </a>
+                    <span className="text-[11px] text-muted-foreground">
+                      No wallet? Get Zashi —{" "}
+                      <a href={ZCASH_WALLET.ios} target="_blank" rel="noreferrer" className="text-primary hover:underline">
+                        iOS
+                      </a>{" "}
+                      ·{" "}
+                      <a href={ZCASH_WALLET.android} target="_blank" rel="noreferrer" className="text-primary hover:underline">
+                        Android
+                      </a>
+                    </span>
+                  </div>
                 )}
                 <div className="w-full rounded-xl border border-border bg-muted/30 p-3">
                   <div className="mb-1 flex items-center justify-between">
@@ -486,12 +512,6 @@ export function SwapWidget({ prefill }: { prefill?: SwapPrefill }) {
   }
 
   // ---------------- Configure view ----------------
-  const presets = [
-    { label: "ZEC → Solana", from: ZEC_NATIVE, to: ZEC_SOLANA },
-    { label: "Solana → ZEC", from: ZEC_SOLANA, to: ZEC_NATIVE },
-    { label: "ZEC → SOL", from: ZEC_NATIVE, to: SOL_NATIVE },
-  ]
-
   return (
     <div className="swap-frame p-[1.5px]">
       <div className="rounded-[calc(1.5rem-1.5px)] bg-card p-6 sm:p-8">
@@ -524,25 +544,9 @@ export function SwapWidget({ prefill }: { prefill?: SwapPrefill }) {
         )}
 
         {!locked && (
-          <div className="mb-4 flex flex-wrap gap-2">
-            {presets.map((p) => {
-              const active = fromId === p.from && toId === p.to
-              return (
-                <button
-                  key={p.label}
-                  type="button"
-                  onClick={() => setPair(p.from, p.to)}
-                  className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
-                    active
-                      ? "border-primary bg-primary/10 text-primary"
-                      : "border-border text-muted-foreground hover:border-primary/40 hover:text-foreground"
-                  }`}
-                >
-                  {p.label}
-                </button>
-              )
-            })}
-          </div>
+          <p className="mb-4 rounded-lg border border-border bg-muted/20 px-3 py-2 text-xs text-muted-foreground">
+            Send to a one-time deposit address and get the other asset back — non-custodial, no account, no login.
+          </p>
         )}
 
         {/* From */}
@@ -565,20 +569,7 @@ export function SwapWidget({ prefill }: { prefill?: SwapPrefill }) {
               onChange={(e) => setAmount(e.target.value)}
               className="h-11 min-w-0 border-0 bg-transparent px-0 text-2xl font-semibold shadow-none focus-visible:ring-0"
             />
-            <Select value={fromId} onValueChange={setFromId}>
-              <SelectTrigger aria-label="Asset to send" className="h-11 w-[150px] shrink-0 rounded-full sm:w-[210px]">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {assets.map((a) => (
-                  <SelectItem key={a.assetId} value={a.assetId} disabled={a.assetId === toId}>
-                    <span className="flex items-center gap-2">
-                      <TokenIcon asset={a} size={18} /> {a.label}
-                    </span>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <AssetChip asset={fromAsset} onClick={() => setAssetsOpen(true)} />
           </div>
           <div className="mt-2 flex items-center justify-between">
             <span className="text-xs text-muted-foreground">{fromUsd ? `≈ $${fromUsd}` : " "}</span>
@@ -629,13 +620,24 @@ export function SwapWidget({ prefill }: { prefill?: SwapPrefill }) {
                 <span className="text-muted-foreground">0.00</span>
               )}
             </div>
-            <Select value={toId} onValueChange={setToId} disabled={locked}>
-              <SelectTrigger aria-label="Asset to receive" className="h-11 w-[150px] shrink-0 rounded-full sm:w-[210px]">
+            <AssetChip asset={toAsset} onClick={() => (locked ? undefined : setAssetsOpen(true))} />
+          </div>
+          <div className="mt-2 text-xs text-muted-foreground">
+            {preview?.amountOutUsd ? `≈ $${preview.amountOutUsd}` : " "}
+          </div>
+        </div>
+
+        {/* Asset chooser — hidden by default to keep the form compact */}
+        {locked ? (
+          <div className="mt-3">
+            <label className="mb-1 block text-xs text-muted-foreground">Pay with</label>
+            <Select value={fromId} onValueChange={setFromId}>
+              <SelectTrigger aria-label="Asset to send" className="h-11 w-full rounded-xl">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
                 {assets.map((a) => (
-                  <SelectItem key={a.assetId} value={a.assetId} disabled={a.assetId === fromId}>
+                  <SelectItem key={a.assetId} value={a.assetId} disabled={a.assetId === toId}>
                     <span className="flex items-center gap-2">
                       <TokenIcon asset={a} size={18} /> {a.label}
                     </span>
@@ -644,10 +646,55 @@ export function SwapWidget({ prefill }: { prefill?: SwapPrefill }) {
               </SelectContent>
             </Select>
           </div>
-          <div className="mt-2 text-xs text-muted-foreground">
-            {preview?.amountOutUsd ? `≈ $${preview.amountOutUsd}` : " "}
+        ) : (
+          <div className="mt-3">
+            <button
+              type="button"
+              onClick={() => setAssetsOpen((o) => !o)}
+              className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"
+            >
+              <RefreshCw size={12} /> {assetsOpen ? "Hide asset options" : "Change assets"}
+            </button>
+            {assetsOpen && (
+              <div className="mt-2 grid gap-2 sm:grid-cols-2">
+                <div>
+                  <label className="mb-1 block text-[11px] text-muted-foreground">You send</label>
+                  <Select value={fromId} onValueChange={setFromId}>
+                    <SelectTrigger aria-label="Asset to send" className="h-11 w-full rounded-xl">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {assets.map((a) => (
+                        <SelectItem key={a.assetId} value={a.assetId} disabled={a.assetId === toId}>
+                          <span className="flex items-center gap-2">
+                            <TokenIcon asset={a} size={18} /> {a.label}
+                          </span>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <label className="mb-1 block text-[11px] text-muted-foreground">You receive</label>
+                  <Select value={toId} onValueChange={setToId}>
+                    <SelectTrigger aria-label="Asset to receive" className="h-11 w-full rounded-xl">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {assets.map((a) => (
+                        <SelectItem key={a.assetId} value={a.assetId} disabled={a.assetId === fromId}>
+                          <span className="flex items-center gap-2">
+                            <TokenIcon asset={a} size={18} /> {a.label}
+                          </span>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            )}
           </div>
-        </div>
+        )}
 
         {/* Quote detail */}
         {preview && (
@@ -694,7 +741,8 @@ export function SwapWidget({ prefill }: { prefill?: SwapPrefill }) {
             <div>
               <div className="mb-1 flex items-center justify-between">
                 <label htmlFor="swap-recipient" className="block text-sm font-medium">
-                  Recipient address <span className="text-muted-foreground">({chainLabel(recipientChain)})</span>
+                  Send my {toAsset?.symbol ?? "asset"} to{" "}
+                  <span className="text-muted-foreground">({chainLabel(recipientChain)})</span>
                 </label>
                 <WalletFillButton chain={recipientChain} onFill={(a) => setRecipient(sanitizeAddress(a))} />
               </div>
@@ -710,25 +758,38 @@ export function SwapWidget({ prefill }: { prefill?: SwapPrefill }) {
               </div>
             </div>
           )}
-          <div>
-            <div className="mb-1 flex items-center justify-between">
-              <label htmlFor="swap-refund" className="block text-sm font-medium">
-                Refund address <span className="text-muted-foreground">({chainLabel(refundChain)})</span>
-              </label>
-              <WalletFillButton chain={refundChain} onFill={(a) => setRefundTo(sanitizeAddress(a))} />
+          {showRefund ? (
+            <div>
+              <div className="mb-1 flex items-center justify-between">
+                <label htmlFor="swap-refund" className="block text-sm font-medium">
+                  Refund to{" "}
+                  <span className="text-muted-foreground">if it can&apos;t complete ({chainLabel(refundChain)})</span>
+                </label>
+                <WalletFillButton chain={refundChain} onFill={(a) => setRefundTo(sanitizeAddress(a))} />
+              </div>
+              <div className="relative">
+                <Input
+                  id="swap-refund"
+                  placeholder={chainMeta(refundChain).addressHint}
+                  value={refundTo}
+                  onChange={(e) => setRefundTo(sanitizeAddress(e.target.value))}
+                  className="pr-9"
+                />
+                {refundValid && <Check size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-secondary" />}
+              </div>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Your {fromAsset?.symbol ?? "funds"} return here if the swap can&apos;t complete.
+              </p>
             </div>
-            <div className="relative">
-              <Input
-                id="swap-refund"
-                placeholder={chainMeta(refundChain).addressHint}
-                value={refundTo}
-                onChange={(e) => setRefundTo(sanitizeAddress(e.target.value))}
-                className="pr-9"
-              />
-              {refundValid && <Check size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-secondary" />}
-            </div>
-            <p className="mt-1 text-xs text-muted-foreground">Where funds return if the swap can&apos;t complete.</p>
-          </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setRefundOpen(true)}
+              className="text-xs font-medium text-primary hover:underline"
+            >
+              + Add refund address (required)
+            </button>
+          )}
         </div>
 
         {/* Privacy meter */}

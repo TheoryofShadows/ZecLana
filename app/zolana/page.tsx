@@ -212,8 +212,8 @@ export default function ZolanaPage() {
           {/* CTA */}
           <div className="flex flex-col justify-center gap-4 sm:flex-row">
             <Button size="lg" asChild className="gap-2">
-              <Link href="https://zashi.cash" target="_blank">
-                Open Zashi Wallet
+              <Link href="https://z.cash" target="_blank">
+                Get a Zcash wallet
                 <ArrowRight size={18} />
               </Link>
             </Button>
