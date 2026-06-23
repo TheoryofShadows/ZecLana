@@ -62,12 +62,12 @@ export function PrivacyMeter({ assessment }: { assessment: PrivacyAssessment }) 
 
       {showShieldHandoff && (
         <a
-          href="https://zashi.cash"
+          href="https://z.cash"
           target="_blank"
           rel="noreferrer"
           className="mt-2.5 inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"
         >
-          Shield your ZEC in Zashi <ExternalLink size={12} />
+          Use a shielded Zcash address <ExternalLink size={12} />
         </a>
       )}
     </div>

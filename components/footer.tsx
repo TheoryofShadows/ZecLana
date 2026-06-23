@@ -1,5 +1,6 @@
 import Link from "next/link"
 import { Github } from "lucide-react"
+import { ZCASH_WALLET } from "@/lib/swap/zashi"
 
 export function Footer() {
   return (
@@ -37,14 +38,24 @@ export function Footer() {
           <div>
             <h4 className="font-semibold mb-4">Resources</h4>
             <ul className="space-y-2 text-sm">
-              <li>
+              <li className="flex items-center gap-2 text-muted-foreground">
+                <span>Zcash wallet:</span>
                 <a
-                  href="https://zashi.cash"
+                  href={ZCASH_WALLET.ios}
                   target="_blank"
                   rel="noreferrer"
-                  className="text-muted-foreground hover:text-foreground transition"
+                  className="hover:text-foreground transition underline"
                 >
-                  Zashi Wallet
+                  iOS
+                </a>
+                <span aria-hidden>·</span>
+                <a
+                  href={ZCASH_WALLET.android}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="hover:text-foreground transition underline"
+                >
+                  Android
                 </a>
               </li>
               <li>

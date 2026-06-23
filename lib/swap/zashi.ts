@@ -5,6 +5,14 @@
 // so this is the real, useful integration point (there's no way to read your
 // shielded address back into a web page).
 
+// Official Zcash wallet by Electric Coin Company — "Zashi", rebranded to "Zodl"
+// in 2026 (same app, same team). App IDs are stable across the rebrand, so we
+// link the store listings directly rather than a marketing page that may rename.
+export const ZCASH_WALLET = {
+  ios: "https://apps.apple.com/app/id1672392439",
+  android: "https://play.google.com/store/apps/details?id=co.electriccoin.zcash",
+}
+
 /** Format an amount to ZIP-321's allowed precision (up to 8 decimals, no trailing zeros). */
 function formatZecAmount(amount: string): string | null {
   const n = Number(amount)

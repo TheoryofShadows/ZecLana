@@ -40,8 +40,8 @@ test.describe("swap configuration → reserve", () => {
     await expect(page.getByText(/Status: PENDING_DEPOSIT/)).toBeVisible()
     await expect(page.getByText("Live tracking")).toBeVisible()
     await expect(page.getByText(/Quote valid for/)).toBeVisible()
-    // Default pair pays with native ZEC, so the Zashi (ZIP-321) deep-link shows.
-    const zashi = page.getByRole("link", { name: /Open in Zashi/i })
+    // Default pair pays with native ZEC, so the ZIP-321 deep-link shows.
+    const zashi = page.getByRole("link", { name: /Open in Zcash wallet/i })
     await expect(zashi).toBeVisible()
     await expect(zashi).toHaveAttribute("href", /^zcash:.*amount=/)
   })
@@ -49,15 +49,15 @@ test.describe("swap configuration → reserve", () => {
   test("a non-ZEC deposit shows no Zashi link", async ({ page }) => {
     await installSwapMocks(page, { statuses: ["PENDING_DEPOSIT"] })
     await page.goto("/zolana")
-    // Solana → ZEC: you pay with szEC on Solana, so the deposit isn't a Zcash one.
-    await page.getByRole("button", { name: "Solana → ZEC" }).click()
+    // Flip direction (szEC on Solana → ZEC), so the deposit isn't a Zcash one.
+    await page.getByRole("button", { name: "Swap direction" }).click()
     await page.getByLabel("Amount to send").fill("10")
     await page.locator("#swap-recipient").fill("t1KzZxbwUNB4Hu1Hg3a4qWxGpGT5Bo4Mr8w")
     await page.locator("#swap-refund").fill("DYw8jCTfwHNRJhhmFcbXvVDTqWMEVFBX6ZKUmG5CNSKK")
     await page.getByRole("button", { name: "Get deposit address" }).click()
 
     await expect(page.getByText("Complete your swap")).toBeVisible()
-    await expect(page.getByRole("link", { name: /Open in Zashi/i })).toHaveCount(0)
+    await expect(page.getByRole("link", { name: /Open in Zcash wallet/i })).toHaveCount(0)
   })
 
   test("rejects an invalid recipient address (button stays gated)", async ({ page }) => {
